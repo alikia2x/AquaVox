@@ -1,20 +1,29 @@
 <script lang="ts">
     import { processImage } from '$lib/graphics';
-    import localforage from 'localforage';
-    // Initialize IndexedDB
-    localforage.config({
-        driver: localforage.INDEXEDDB,
-        name: 'audioDB'
-    });
-
+    import blobToImageData from '$lib/graphics/blob2imageData';
+    import imageDataToBlob from '$lib/graphics/imageData2blob';
+    import localforage from '$lib/storage';
     export let coverId: string;
     let canvas: HTMLCanvasElement;
-    localforage.getItem(`${coverId}-cover`, function (err, file) {
-        console.log(file);
-        console.log(err);
+
+    let flag = false;
+    localforage.getItem(`${coverId}-cover-cache`, function (err, file) {
         if (file) {
-            const path = URL.createObjectURL(file as File);
-            processImage(16, 4, 96, path, canvas);
+            const ctx = canvas.getContext('2d');
+            blobToImageData(file as Blob).then((imageData) => {
+                console.log(imageData);
+                ctx?.putImageData(imageData,0,0);
+            })
+            
+        } else {
+            localforage.getItem(`${coverId}-cover`, function (err, file) {
+                if (file) {
+                    const path = URL.createObjectURL(file as File);
+                    processImage(16, 3, 96, path, canvas, (resultImageData: ImageData) => {
+                        localforage.setItem(`${coverId}-cover-cache`, imageDataToBlob(resultImageData));
+                    });
+                }
+            });
         }
     });
 </script>
@@ -37,8 +46,8 @@
     }
     canvas {
         position: relative;
-        width: 110%;
-        height: 110%;
         object-fit: cover;
+        width: 100%;
+        height: 100%;
     }
 </style>

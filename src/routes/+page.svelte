@@ -15,7 +15,6 @@
         // Handle audio input change
         audioInput.addEventListener('change', function (e: any) {
             const file: File = e.target.files[0];
-            console.log(file.size);
             if (file) {
                 localforage.setItem(audioId + '-file', file);
             }

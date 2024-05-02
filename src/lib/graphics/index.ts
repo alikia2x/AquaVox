@@ -1,46 +1,34 @@
-import { gaussianBlurHorizontal, gaussianBlurVertical, applyFilter } from "./utils";
+import { gaussianBlurHorizontal, gaussianBlurVertical, applyFilter } from './utils';
 
-export async function processImage(blockSize: number, resolutionFactor:number, radius:number, path: string, canvas: HTMLCanvasElement) {
-    const ctx = canvas.getContext("2d")!;
+export function processImage(
+    blockSize: number,
+    resolutionFactor: number,
+    radius: number,
+    path: string,
+    canvas: HTMLCanvasElement,
+    callback: (resultImageData: ImageData) => void
+) {
+    const ctx = canvas.getContext('2d')!;
 
     const image = new Image();
     image.src = path; // Replace with your image path
 
     image.onload = function () {
         // Resize image to 1/9 of the original resolution
+        const width = image.width;
+        const height = image.height;
         const resizedWidth = image.width / resolutionFactor;
         const resizedHeight = image.height / resolutionFactor;
 
-        const num_blocks_x = Math.floor(resizedWidth / blockSize);
-        const num_blocks_y = Math.floor(resizedHeight / blockSize);
-
         canvas.width = resizedWidth;
         canvas.height = resizedHeight;
-
-        for (let i = 0; i < num_blocks_y; i++) {
-            for (let j = 0; j < num_blocks_x; j++) {
-                const block = document.createElement("canvas");
-                block.width = blockSize;
-                block.height = blockSize;
-
-                const blockCtx = block.getContext("2d")!;
-                blockCtx.drawImage(
-                    image,
-                    j * blockSize * resolutionFactor,
-                    i * blockSize * resolutionFactor,
-                    blockSize * resolutionFactor,
-                    blockSize * resolutionFactor,
-                    0,
-                    0,
-                    blockSize,
-                    blockSize
-                );
-
-                applyFilter(block);
-
-                ctx.drawImage(block, j * blockSize, i * blockSize);
-            }
-        }
+        const block = document.createElement('canvas');
+        const blockCtx = block.getContext('2d')!;
+        block.width = image.width;
+        block.height = image.height;
+        blockCtx.drawImage(image, 0, 0, width, height, 0, 0, resizedWidth, resizedHeight);
+        applyFilter(block);
+        ctx.drawImage(block, 0, 0);
 
         // Horizontal Gaussian blur
         const imageDataHorizontal = ctx.getImageData(0, 0, canvas.width, canvas.height);
@@ -50,6 +38,7 @@ export async function processImage(blockSize: number, resolutionFactor:number, r
         const imageDataVertical = blurredImageDataHorizontal;
         const blurredImageData = gaussianBlurVertical(imageDataVertical, radius);
 
-        ctx.putImageData(blurredImageData, 0, 0);
+        ctx.putImageData(blurredImageData, 0, 0, 0, 0, width, height);
+        callback(blurredImageData);
     };
 }
