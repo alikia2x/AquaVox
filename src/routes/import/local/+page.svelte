@@ -1,12 +1,13 @@
 <script>
     import FileList from '../../../components/import/fileList.svelte';
     import FileSelector from '../../../components/import/fileSelector.svelte';
-    import { fileListState } from '$lib/state/fileList.state';
+    import { fileListState, finalFileListState } from '$lib/state/fileList.state';
     import { localImportFailed, localImportSuccess } from '$lib/state/localImportStatus.state';
     import { useAtom } from 'jotai-svelte';
     import localforage from '$lib/storage';
     import { v1 as uuidv1 } from 'uuid';
     const fileList = useAtom(fileListState);
+    const finalFiles = useAtom(finalFileListState);
     const failed = useAtom(localImportFailed);
     const success = useAtom(localImportSuccess);
 </script>
@@ -25,7 +26,13 @@
 <FileList />
 
 <p class="mt-4">
-    <span>{ $failed.length }个文件导入失败</span> <span class="ml-2">{ $success.length }个文件导入成功</span>
+    <span>待处理 {$fileList.length} 个文件</span>
+    {#if $success.length > 0}
+        <span class="mt-4">{$success.length} 个文件导入成功</span>
+    {/if}
+    {#if $failed.length > 0}
+        <span class="mt-4">{$failed.length} 个文件导入失败</span>
+    {/if}
 </p>
 <button
     class="mt-1 bg-blue-500 hover:bg-blue-600 duration-200 text-white font-bold py-2 px-5 rounded"
@@ -35,20 +42,31 @@
             localforage.setItem(audioId + '-file', file, function (err) {
                 if (err) {
                     console.error(err);
-                    failed.update(prev => [...prev, file]);
+                    failed.update((prev) => [...prev, file]);
                 } else {
-                    if (file.cover==="N/A") {
-                        success.update(prev => [...prev, file]);
+                    if (file.cover === 'N/A') {
+                        success.update((prev) => [...prev, file]);
+                        finalFiles.update((prev) => {
+                            return prev.filter((item) => item !== file);
+                        });
+                        fileList.update((prev) => {
+                            return prev.filter((item) => item !== file);
+                        });
                         return;
                     }
-                    console.log(file);
                     let blob = fetch(file.pic).then((r) => {
                         localforage.setItem(audioId + '-cover', r.blob(), function (err) {
                             if (err) {
                                 console.error(err);
-                                failed.update(prev => [...prev, file]);
+                                failed.update((prev) => [...prev, file]);
                             } else {
-                                success.update(prev => [...prev, file]);
+                                success.update((prev) => [...prev, file]);
+                                finalFiles.update((prev) => {
+                                    return prev.filter((item) => item !== file);
+                                });
+                                fileList.update((prev) => {
+                                    return prev.filter((item) => item !== file);
+                                });
                             }
                         });
                     });
