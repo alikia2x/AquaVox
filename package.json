@@ -34,7 +34,10 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"jotai": "^2.8.0",
+		"jotai-svelte": "^0.0.2",
 		"localforage": "^1.10.0",
+		"music-metadata-browser": "^2.5.10",
 		"uuid": "^9.0.1"
 	}
 }

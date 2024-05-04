@@ -5,3 +5,7 @@
 h1 {
     @apply text-4xl font-bold leading-[4rem];
 }
+
+h2 {
+    @apply text-3xl font-medium leading-[3rem];
+}
