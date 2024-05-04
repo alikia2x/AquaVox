@@ -10,6 +10,8 @@
         if (file) {
             const ctx = canvas.getContext('2d');
             blobToImageData(file as Blob).then((imageData) => {
+                canvas.height = imageData.height;
+                canvas.width = imageData.width;
                 ctx?.putImageData(imageData, 0, 0);
                 canvas.style.opacity = '1';
             });
@@ -18,6 +20,7 @@
                 if (file) {
                     const path = URL.createObjectURL(file as File);
                     processImage(16, 3, 96, path, canvas, (resultImageData: ImageData) => {
+                        console.log(resultImageData);
                         localforage.setItem(
                             `${coverId}-cover-cache`,
                             imageDataToBlob(resultImageData)
@@ -52,6 +55,6 @@
         width: 100%;
         height: 100%;
         opacity: 0;
-        transition: 0.6s;
+        transition: .45s;
     }
 </style>

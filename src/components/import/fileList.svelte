@@ -1,6 +1,6 @@
 <script lang="ts">
     import { useAtom } from 'jotai-svelte';
-    import { fileListState, finalFileListState } from './fileList.state';
+    import { fileListState, finalFileListState } from '$lib/state/fileList.state';
     import toHumanSize from '$lib/humanSize';
     import audioFormatText from '$lib/audioFormatText';
     import extractFileName from '$lib/extractFileName';
