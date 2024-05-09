@@ -1,7 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import localforage from 'localforage';
-    import Background from '../components/background.svelte';
+    import Background from '$lib/components/background.svelte';
     let audioInput: any;
     let coverInput: any;
     const audioId = 'd5a2e306-ddea-4fc3-9927-c79dcb3a4071';

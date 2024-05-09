@@ -1,5 +1,5 @@
 <script lang="ts">
-    import SourceCard from "../../components/import/sourceCard.svelte";
+    import SourceCard from "$lib/components/import/sourceCard.svelte";
 
 </script>
 

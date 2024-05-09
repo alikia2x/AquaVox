@@ -1,6 +1,6 @@
 <script>
-    import FileList from '../../../components/import/fileList.svelte';
-    import FileSelector from '../../../components/import/fileSelector.svelte';
+    import FileList from '$lib/components/import/fileList.svelte';
+    import FileSelector from '$lib/components/import/fileSelector.svelte';
     import { fileListState, finalFileListState } from '$lib/state/fileList.state';
     import { localImportFailed, localImportSuccess } from '$lib/state/localImportStatus.state';
     import { useAtom } from 'jotai-svelte';
