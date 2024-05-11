@@ -6,6 +6,7 @@
     import { fileListState } from '$lib/state/fileList.state';
     import AddIcon from './addIcon.svelte';
     const fileItems = useAtom(fileListState);
+    export let accept: string = "audio/*";
 
     onMount(() => {
         audioFiles.addEventListener('change', function (e: any) {
@@ -23,7 +24,7 @@
     });
 </script>
 
-<input style="display: none;" type="file" bind:this={audioFiles} multiple accept="audio/*" />
+<input style="display: none;" type="file" bind:this={audioFiles} multiple accept={accept} />
 <div class={$$props.class}>
     <button
         on:click={() => {

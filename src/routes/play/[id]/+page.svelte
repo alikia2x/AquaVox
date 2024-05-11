@@ -4,6 +4,7 @@
     import Background from '$lib/components/background.svelte';
     import Cover from '$lib/components/cover.svelte';
     import InteractiveBox from '$lib/components/interactiveBox.svelte';
+    import Lyrics from '$lib/components/lyrics.svelte';
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
@@ -19,6 +20,7 @@
     let paused: boolean = true;
     let launched = false;
     let prepared: string[] = [];
+    let originalLyrics: string = '';
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -79,6 +81,14 @@
                 prepared.push('file');
             }
         });
+        localforage.getItem(`${audioId}-lyrics`, function (err, file) {
+            if (file) {
+                const f = file as File;
+                f.text().then((lr) => {
+                    originalLyrics = lr;
+                });
+            }
+        });
     }
 
     function playAudio() {
@@ -135,7 +145,7 @@
             volume = audioPlayer.volume;
         }
     }
-    
+
     readDB();
 </script>
 
@@ -161,3 +171,5 @@
         audioPlayer.pause();
     }}
 ></audio>
+
+<Lyrics lyrics={[]} progress={currentProgress} />
