@@ -8,6 +8,8 @@
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
+    import srtParser2 from 'srt-parser-2';
+    import type { Line } from 'srt-parser-2';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement;
@@ -20,7 +22,8 @@
     let paused: boolean = true;
     let launched = false;
     let prepared: string[] = [];
-    let originalLyrics: string = '';
+    let originalLyrics: Line[];
+    let lyricsText: string[] = [];
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -81,11 +84,15 @@
                 prepared.push('file');
             }
         });
-        localforage.getItem(`${audioId}-lyrics`, function (err, file) {
+        localforage.getItem(`${audioId}-lyric`, function (err, file) {
             if (file) {
                 const f = file as File;
                 f.text().then((lr) => {
-                    originalLyrics = lr;
+                    const parser = new srtParser2();
+                    originalLyrics = parser.fromSrt(lr);
+                    for (const line of originalLyrics) {
+                        lyricsText.push(line.text);
+                    }
                 });
             }
         });
@@ -136,7 +143,7 @@
             if (audioPlayer !== null && audioPlayer.currentTime !== undefined) {
                 currentProgress = audioPlayer.currentTime;
             }
-        }, 250);
+        }, 100);
     }
 
     $: {
@@ -172,4 +179,4 @@
     }}
 ></audio>
 
-<Lyrics lyrics={[]} progress={currentProgress} />
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} />

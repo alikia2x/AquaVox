@@ -35,10 +35,12 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",
 		"jotai": "^2.8.0",
 		"jotai-svelte": "^0.0.2",
 		"localforage": "^1.10.0",
 		"music-metadata-browser": "^2.5.10",
+		"srt-parser-2": "^1.2.3",
 		"uuid": "^9.0.1"
 	}
 }

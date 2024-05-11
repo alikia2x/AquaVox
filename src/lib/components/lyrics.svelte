@@ -1,19 +1,81 @@
 <script lang="ts">
-    export let lyrics: string[] = [];
+    import type { Line } from 'srt-parser-2';
+    export let lyrics: string[];
+    export let originalLyrics: Line[];
     export let progress: number;
+    let currentScrollPos = '';
+    let currentLyric: Line;
+    let currentLyricIndex = -1;
+
+    let refs = [];
+    let _refs: any[] = [];
+    $: refs = _refs.filter(Boolean);
+
+    function getClass(lyric: string, progress: number) {
+        if (lyric === currentLyric.text) return 'current-lyric';
+        else if (progress > currentLyric.endSeconds) return 'after-lyric';
+        else return 'previous-lyric';
+    }
+
+    $: {
+        if (originalLyrics) {
+            let found = false;
+            for (let i = 0; i < originalLyrics.length; i++) {
+                let l = originalLyrics[i];
+                if (progress >= l.startSeconds && progress <= l.endSeconds) {
+                    currentLyric = l;
+                    currentLyricIndex = i;
+                    found = true;
+                    const currentRef = refs[i];
+                    if (currentRef && currentScrollPos !== currentLyric.text) {
+                        currentRef.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        currentScrollPos = currentLyric.text;
+                    }
+                    break;
+                }
+            }
+            for (let i = 0; i < lyrics.length; i++) {
+                const offset = Math.abs(i - currentLyricIndex);
+                const blurRadius = Math.min(offset * 1, 16);
+                const fontSize = i === currentLyricIndex ? '3.5rem' : '3rem';
+                const lineHeight = i === currentLyricIndex ? '4.5rem' : '4rem';
+                if (refs[i]) {
+                    refs[i].style.filter = `blur(${blurRadius}px)`;
+                    refs[i].style.fontSize = fontSize;
+                    refs[i].style.lineHeight = lineHeight;
+                }
+            }
+            if (!found) {
+                currentLyric = {
+                    id: '-1',
+                    startTime: '00:00:00,000',
+                    startSeconds: 0,
+                    endTime: '00:00:00,000',
+                    endSeconds: 0,
+                    text: ''
+                };
+            }
+        }
+    }
 </script>
 
-<div class="lyrics" style="overflow-y: auto">
-    {#each lyrics as lyric}
-        <p class="current-lyric">{lyric}</p>
-    {/each}
-</div>
+{#if lyrics && originalLyrics}
+    <div class="lyrics" style="overflow-y: auto">
+        {#each lyrics as lyric, i}
+            <p bind:this={_refs[i]} class={getClass(lyric, progress)}>
+                {lyric}
+            </p>
+        {/each}
+    </div>
+{/if}
 
 <style>
     .lyrics {
         position: absolute;
-        width: 45vw;
-        left: 50vw;
+        width: 52vw;
+        left: 45vw;
+        padding-left: 3vw;
+        padding-right: 3vw;
         height: 100vh;
         font-family: sans-serif;
         text-align: left;

@@ -198,7 +198,8 @@
     .interactive-box {
         user-select: none;
         position: absolute;
-        width: 34vw;
+        width: 55vh;
+        min-width: 27vw;
         top: 69vh;
         height: 15rem;
         left: 10vw;
