@@ -114,6 +114,12 @@
         }
     }
 
+    function adjustVolume(targetVolume: number) {
+        if (audioPlayer) {
+            audioPlayer.volume = targetVolume;
+        }
+    }
+
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
@@ -126,8 +132,10 @@
     $: {
         if (audioPlayer) {
             paused = audioPlayer.paused;
+            volume = audioPlayer.volume;
         }
     }
+    
     readDB();
 </script>
 
@@ -137,10 +145,12 @@
     {name}
     {singer}
     {duration}
+    {volume}
     progress={currentProgress}
     clickPlay={playAudio}
     {paused}
     {adjustProgress}
+    {adjustVolume}
 />
 <audio
     bind:this={audioPlayer}

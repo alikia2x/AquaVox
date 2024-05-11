@@ -6,13 +6,20 @@
     export let duration: number = 0;
     export let progress: number = 0;
     export let paused: boolean;
+    export let volume: number = 1;
     export let clickPlay: Function;
     export let adjustProgress: Function;
+    export let adjustVolume: Function;
     let onSlide = false;
     let progressBar: HTMLInputElement;
+    let volumeBar: HTMLInputElement;
 
     function progressBarOnChange(e: any) {
         adjustProgress(e.target.value / (duration + 0.001));
+    }
+
+    function volumeBarOnChange(e: any) {
+        adjustVolume(e.target.value);
     }
 </script>
 
@@ -21,7 +28,7 @@
         <span class="song-name text-shadow">{name}</span><br />
         <span class="song-author">{singer}</span>
     </div>
-    <div class="progress">
+    <div class="progress top-16">
         <div class="time-indicator text-shadow-md time-current">{formatDuration(progress)}</div>
         <input
             class="progress-bar shadow-md"
@@ -39,10 +46,9 @@
             step="1"
             value={onSlide ? progressBar.value : progress}
         />
-        <!-- <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div> -->
         <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
     </div>
-    <div class="controls">
+    <div class="controls top-32 flex h-16 overflow-hidden items-center justify-center">
         <button
             style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
             class="control-btn previous"
@@ -63,50 +69,51 @@
             <img class="control-img switch-song-img" src="/next.svg" alt="下一曲" />
         </button>
     </div>
+    <div class="relative top-52 h-6 flex">
+        <img class="scale-75" src="/volumeDown.svg" alt="最小音量" />
+        <input
+            class="mx-2 progress-bar shadow-md !translate-y-[-50%] !top-1/2"
+            bind:this={volumeBar}
+            on:input={volumeBarOnChange}
+            type="range"
+            min="0"
+            max="1"
+            step="0.01"
+            value={onSlide ? volumeBar.value : volume}
+        />
+        <img class="scale-75" src="/volumeUp.svg" alt="最大音量" />
+    </div>
 </div>
 
 <style>
     .controls {
         position: absolute;
-        top: 10rem;
         width: 100%;
         left: 50%;
         transform: translate(-50%, 0);
     }
     .control-btn {
         display: inline-block;
-        position: absolute;
-        height: 4.2rem;
-        width: 6rem;
+        height: 3.7rem;
+        width: 5rem;
         cursor: pointer;
+        margin: 0 0.5rem;
         border-radius: 0.5rem;
         transition: 0.1s;
     }
     .control-btn:hover {
         background-color: rgba(0, 0, 0, 0.1);
     }
-    .play-btn {
-        left: 50%;
-        transform: translate(-50%, 0);
-    }
     .control-img {
+        height: 2rem;
+        width: 2rem;
         position: relative;
-        height: 2.3rem;
-        width: 2.3rem;
         left: 50%;
-        transform: translate(-50%, 0);
-    }
-    .previous {
-        left: 50%;
-        transform: translate(calc(-50% - 8rem), 0);
-    }
-    .next {
-        right: 50%;
-        transform: translate(calc(50% + 8rem), 0);
+        transform: translateX(-50%);
     }
     .switch-song-img {
         width: auto !important;
-        height: 2rem !important;
+        height: 1.7rem !important;
     }
 
     .song-info {
@@ -134,7 +141,6 @@
         width: 100%;
         left: 50%;
         transform: translate(-50%, 0);
-        top: 6rem;
         height: 2.4rem;
     }
     .progress-bar {
@@ -157,14 +163,13 @@
     .progress-bar::-webkit-slider-thumb {
         -webkit-appearance: none;
         appearance: none;
-        width: 0.2rem;
+        width: 0rem;
         height: 0.7rem;
         background-color: white;
         box-shadow: -700px 0 0 700px white;
         cursor: pointer;
     }
 
-    /* Customize the appearance of the thumb for Firefox */
     .progress-bar::-moz-range-thumb {
         appearance: none;
         width: 0px;
@@ -174,14 +179,7 @@
         cursor: pointer;
         border: none;
     }
-    .bar {
-        background-color: white;
-        position: absolute;
-        content: '';
-        height: 0.4rem;
-        display: inline-block;
-        border-radius: 1.5rem;
-    }
+
     .time-indicator {
         width: fit-content;
         position: absolute;
@@ -201,7 +199,7 @@
         user-select: none;
         position: absolute;
         width: 34vw;
-        top: 70vh;
+        top: 69vh;
         height: 15rem;
         left: 10vw;
     }
