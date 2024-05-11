@@ -1,5 +1,4 @@
 import * as musicMetadata from 'music-metadata-browser';
-import convertCoverData from './convertCoverData';
 
 export default function getAudioMeta(audio: File, callback: Function) {
     musicMetadata.parseBlob(audio).then((metadata) => {

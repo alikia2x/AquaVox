@@ -1,6 +1,5 @@
 <script lang="ts">
     import localforage from '$lib/storage';
-    import { page } from '$app/stores';
     export let coverId;
 
     let coverPath = '';
