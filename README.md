@@ -1,38 +1,34 @@
-# create-svelte
+# AquaVox - 洛水之音
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+AquaVox 是一个为中文虚拟歌手爱好者献上的产品。
 
-## Creating a project
+> VOCALOID IS ALIVE.
 
-If you're seeing this, you've probably already done this step. Congrats!
+这是一个**开源、本地优先、有B站良好支持、界面美观优雅**的**音乐播放器**。
 
-```bash
-# create a new project in the current directory
-npm create svelte@latest
+## 使用
 
-# create a new project in my-app
-npm create svelte@latest my-app
-```
+## 项目起源
 
-## Developing
+**开发者寒寒的话：**  
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+AquaVox 这个播放器项目的灵感根本上来自于Apple Music，以其优雅流畅的界面设计而著称。
 
-```bash
-npm run dev
+我的中V曲之前基本是在B站听的，而中文虚拟歌手社区也基本上扎根于B站。但在B站听歌也有不少劣势——  
+首先自然是B站本身并不是一个音乐软件或播放器，自然在相关的功能上并没有过多开发，“听视频”的功能也仅在移动端可用；  
+其次，不少人听歌还是有看歌词的需求的，而许多中V曲发布时附上的PV中的歌词，为了美观，歌词并不会以一个常规视频的字幕样式呈现，而是采用了美术字等更为艺术化的表现形式，这使得查看歌词并不方便，更不用说在“听视频”模式下PV根本没有播放的情况。
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+而后来，我选择了通过将B站的歌曲导入到Apple Music的方案，而为什么选择AM呢？尽管很多中V曲在网易云等平台上有更丰富的资源，但我依然选择了AM。很大一个原因自然是我对AM播放器界面和交互设计及用户体验的喜爱，但另一方面，网易云的中V曲库其实也并不算全，最终还要使用导入的方法才能将自己所有喜欢的歌囊括其中，那么既然要导入，何不直接将歌曲全部导入AM呢？
 
-## Building
+但很快，我也发现了AM的一个致命问题：自行导入的歌曲没有动态歌词的功能，只能以一个静态的模式查看全部的歌词。而动态歌词的漂亮设计是我很大一部分喜欢Apple Music的原因，但我自己导入的歌曲却无法享受这个功能，不是很令人失望吗？
 
-To create a production version of your app:
+因此，最后，我还是最终决定自行开发一个播放器，加上所有我喜欢的东西——Apple Music的页面设计和交互、从B站直接获取的曲库、通过网页、PWA和Electron使全平台有一致的体验。
 
-```bash
-npm run build
-```
+## “赠品”
 
-You can preview the production build with `npm run preview`.
+**开发者寒寒的话：**  
+在熟虑后，我决定让 AquaVox 不仅是一个播放器。更进一步，我希望它是一个属于整个中文虚拟歌手社区的数据库。从音源、作者（P主及staff）、虚拟歌手、歌曲元信息、动态歌词，在整个链路上成为一个中文虚拟歌手的终极“Archive”。
 
-> To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+因此，我们需要你的帮助。
+
+> 声明：AquaVox 并不是音乐（流媒体）平台，官方并未提供任何音源的分发和(或)售卖，也不存在其它形式的任何盈利行为。
