@@ -13,6 +13,7 @@
 
 <style>
     .cover {
+        user-select: none;
         position: absolute;
         z-index: 1;
         min-height: 35vh;

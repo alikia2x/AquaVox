@@ -20,7 +20,6 @@
                 if (file) {
                     const path = URL.createObjectURL(file as File);
                     processImage(16, 4, 96, path, canvas, (resultImageData: ImageData) => {
-                        console.log(resultImageData);
                         localforage.setItem(
                             `${coverId}-cover-cache`,
                             imageDataToBlob(resultImageData)

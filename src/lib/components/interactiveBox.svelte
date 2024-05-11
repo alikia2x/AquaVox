@@ -7,6 +7,13 @@
     export let progress: number = 0;
     export let paused: boolean;
     export let clickPlay: Function;
+    export let adjustProgress: Function;
+    let onSlide = false;
+    let progressBar: HTMLInputElement;
+
+    function progressBarOnChange(e: any) {
+        adjustProgress(e.target.value / (duration + 0.001));
+    }
 </script>
 
 <div class="interactive-box">
@@ -16,28 +23,52 @@
     </div>
     <div class="progress">
         <div class="time-indicator text-shadow-md time-current">{formatDuration(progress)}</div>
-        <div class="progress-bar shadow-md">
-            <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
-        </div>
+        <input
+            class="progress-bar shadow-md"
+            bind:this={progressBar}
+            on:change={progressBarOnChange}
+            on:mousedown={() => (onSlide = true)}
+            on:mouseup={() => {
+                setTimeout(() => {
+                    onSlide = false;
+                }, 50);
+            }}
+            type="range"
+            min="0"
+            max={duration - 0.2}
+            step="1"
+            value={onSlide ? progressBar.value : progress}
+        />
+        <!-- <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div> -->
         <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
     </div>
     <div class="controls">
-        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn previous">
+        <button
+            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
+            class="control-btn previous"
+        >
             <img class="control-img switch-song-img" src="/previous.svg" alt="上一曲" />
-        </div>
-        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn play-btn" on:click={() => clickPlay()}>
+        </button>
+        <button
+            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
+            class="control-btn play-btn"
+            on:click={() => clickPlay()}
+        >
             <img class="control-img" src={paused ? '/play.svg' : '/pause.svg'} alt="暂停或播放" />
-        </div>
-        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn next">
+        </button>
+        <button
+            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
+            class="control-btn next"
+        >
             <img class="control-img switch-song-img" src="/next.svg" alt="下一曲" />
-        </div>
+        </button>
     </div>
 </div>
 
 <style>
     .controls {
         position: absolute;
-        top: 9rem;
+        top: 10rem;
         width: 100%;
         left: 50%;
         transform: translate(-50%, 0);
@@ -63,8 +94,7 @@
         height: 2.3rem;
         width: 2.3rem;
         left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
+        transform: translate(-50%, 0);
     }
     .previous {
         left: 50%;
@@ -80,6 +110,7 @@
     }
 
     .song-info {
+        user-select: text;
         position: absolute;
         width: auto;
         left: 50%;
@@ -107,18 +138,47 @@
         height: 2.4rem;
     }
     .progress-bar {
+        -webkit-appearance: none;
+        appearance: none;
         top: 1.8rem;
         position: relative;
         width: 100%;
-        height: 0.3rem;
-        background-color: rgba(255, 255, 255, .5);
+        height: 0.4rem;
+        background-color: rgba(64, 64, 64, 0.5);
+        color: white;
         border-radius: 0.5rem;
+        overflow: hidden;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+    .progress-bar:hover {
+        height: 0.7rem;
+    }
+    .progress-bar::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 0.2rem;
+        height: 0.7rem;
+        background-color: white;
+        box-shadow: -700px 0 0 700px white;
+        cursor: pointer;
+    }
+
+    /* Customize the appearance of the thumb for Firefox */
+    .progress-bar::-moz-range-thumb {
+        appearance: none;
+        width: 0px;
+        height: 0px;
+        background-color: white;
+        box-shadow: -700px 0 0 700px white;
+        cursor: pointer;
+        border: none;
     }
     .bar {
         background-color: white;
         position: absolute;
         content: '';
-        height: 0.3rem;
+        height: 0.4rem;
         display: inline-block;
         border-radius: 1.5rem;
     }
@@ -138,6 +198,7 @@
         right: 0;
     }
     .interactive-box {
+        user-select: none;
         position: absolute;
         width: 34vw;
         top: 70vh;

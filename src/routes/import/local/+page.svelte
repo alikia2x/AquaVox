@@ -41,7 +41,6 @@
             let audioId = uuidv1();
             localforage.setItem(audioId + '-file', file, function (err) {
                 if (err) {
-                    console.error(err);
                     failed.update((prev) => [...prev, file]);
                 } else {
                     if (file.cover === 'N/A') {
@@ -57,7 +56,6 @@
                     let blob = fetch(file.pic).then((r) => {
                         localforage.setItem(audioId + '-cover', r.blob(), function (err) {
                             if (err) {
-                                console.error(err);
                                 failed.update((prev) => [...prev, file]);
                             } else {
                                 success.update((prev) => [...prev, file]);

@@ -10,6 +10,7 @@
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement;
+    let volume = 1;
     let name = '';
     let singer = '';
     let duration = 0;
@@ -91,7 +92,6 @@
 
     $: {
         if (!launched) {
-            console.log('launch?');
             const requirements = ['name', 'file', 'cover'];
             let flag = true;
             for (const r of requirements) {
@@ -99,13 +99,18 @@
                     flag = false;
                 }
             }
-            console.log(prepared, flag);
             if (flag) {
                 launched = true;
-                console.log('launch!');
                 setMediaSession();
                 audioPlayer.play();
             }
+        }
+    }
+
+    function adjustProgress(progress: number) {
+        if (audioPlayer) {
+            audioPlayer.currentTime = duration * progress;
+            currentProgress = duration * progress;
         }
     }
 
@@ -115,16 +120,12 @@
             if (audioPlayer !== null && audioPlayer.currentTime !== undefined) {
                 currentProgress = audioPlayer.currentTime;
             }
-        }, 500);
+        }, 250);
     }
 
     $: {
         if (audioPlayer) {
             paused = audioPlayer.paused;
-            if (audioPlayer.ended) {
-                paused = true;
-                audioPlayer.pause();
-            }
         }
     }
     readDB();
@@ -139,5 +140,14 @@
     progress={currentProgress}
     clickPlay={playAudio}
     {paused}
+    {adjustProgress}
 />
-<audio bind:this={audioPlayer} controls style="display: none"></audio>
+<audio
+    bind:this={audioPlayer}
+    controls
+    style="display: none"
+    on:ended={() => {
+        paused = true;
+        audioPlayer.pause();
+    }}
+></audio>
