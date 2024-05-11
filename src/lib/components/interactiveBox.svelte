@@ -1,37 +1,38 @@
 <script lang="ts">
-    import formatDuration from "$lib/formatDuration";
+    import formatDuration from '$lib/formatDuration';
 
     export let name: string;
-    export let singer: string = "";
+    export let singer: string = '';
     export let duration: number = 0;
     export let progress: number = 0;
+    export let paused: boolean;
+    export let clickPlay: Function;
 </script>
 
 <div class="interactive-box">
     <div class="song-info">
-        <span class="song-name">{name}</span><br/>
+        <span class="song-name text-shadow">{name}</span><br />
         <span class="song-author">{singer}</span>
     </div>
     <div class="progress">
-        <div class="time-indicator time-current">{formatDuration(progress)}</div>
-        <div id="progress-bar" class="progress-bar">
-            <div class="bar" style={`width: ${progress/(duration+0.001)*100}%;`}></div>
+        <div class="time-indicator text-shadow-md time-current">{formatDuration(progress)}</div>
+        <div class="progress-bar shadow-md">
+            <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
         </div>
-        <div class="time-indicator time-total">{formatDuration(duration)}</div>
+        <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
     </div>
     <div class="controls">
-        <div id="previous" class="control-btn previous">
+        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn previous">
             <img class="control-img switch-song-img" src="/previous.svg" alt="上一曲" />
         </div>
-        <div id="play" class="control-btn play-btn">
-            <img id="play-img" class="control-img" src="/play.svg" alt="暂停或播放" />
+        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn play-btn" on:click={() => clickPlay()}>
+            <img class="control-img" src={paused ? '/play.svg' : '/pause.svg'} alt="暂停或播放" />
         </div>
-        <div id="right" class="control-btn next">
+        <div style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn next">
             <img class="control-img switch-song-img" src="/next.svg" alt="下一曲" />
         </div>
     </div>
 </div>
-
 
 <style>
     .controls {
@@ -110,13 +111,13 @@
         position: relative;
         width: 100%;
         height: 0.3rem;
-        background-color: rgba(255, 255, 255, 0.5);
+        background-color: rgba(255, 255, 255, .5);
         border-radius: 0.5rem;
     }
     .bar {
         background-color: white;
         position: absolute;
-        content: "";
+        content: '';
         height: 0.3rem;
         display: inline-block;
         border-radius: 1.5rem;
@@ -127,7 +128,6 @@
         font-size: 1rem;
         line-height: 1rem;
         color: rgba(255, 255, 255, 0.8);
-        font-family: sans-serif;
         display: inline-block;
         top: 0.2rem;
     }

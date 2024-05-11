@@ -1,18 +1,15 @@
 <script lang="ts">
     import localforage from '$lib/storage';
-    export let coverId;
+    import type { Writable } from 'svelte/store';
+    export let coverPath: Writable<string>;
+    let path: string = "";
 
-    let coverPath = '';
-
-    localforage.getItem(`${coverId}-cover`, function (err, file) {
-        if (file) {
-            const path = URL.createObjectURL(file as File);
-            coverPath = path;
-        }
+    coverPath.subscribe((p) => {
+        if (p) path = p;
     });
 </script>
 
-<img class="cover" src={coverPath} alt="封面" />
+<img class="cover" src={path} alt="封面" />
 
 <style>
     .cover {
