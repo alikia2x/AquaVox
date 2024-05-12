@@ -11,8 +11,8 @@
     let _refs: any[] = [];
     $: refs = _refs.filter(Boolean);
 
-    function getClass(lyric: string, progress: number) {
-        if (lyric === currentLyric.text) return 'current-lyric';
+    function getClass(lyricIndex: number, progress: number) {
+        if (lyricIndex === currentLyricIndex) return 'current-lyric';
         else if (progress > currentLyric.endSeconds) return 'after-lyric';
         else return 'previous-lyric';
     }
@@ -62,7 +62,7 @@
 {#if lyrics && originalLyrics}
     <div class="lyrics" style="overflow-y: auto">
         {#each lyrics as lyric, i}
-            <p bind:this={_refs[i]} class={getClass(lyric, progress)}>
+            <p bind:this={_refs[i]} class={getClass(i, progress)}>
                 {lyric}
             </p>
         {/each}
