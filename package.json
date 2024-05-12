@@ -1,6 +1,6 @@
 {
 	"name": "aquavox",
-	"version": "1.8.0",
+	"version": "1.8.1",
 	"private": false,
 	"scripts": {
 		"dev": "vite dev",
@@ -40,6 +40,7 @@
 		"jotai-svelte": "^0.0.2",
 		"localforage": "^1.10.0",
 		"music-metadata-browser": "^2.5.10",
+		"rollup-plugin-node-polyfills": "^0.2.1",
 		"srt-parser-2": "^1.2.3",
 		"uuid": "^9.0.1"
 	}

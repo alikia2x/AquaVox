@@ -1,6 +1,7 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
-import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill'
+import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
+import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
 
 export default defineConfig({
     plugins: [sveltekit()],
@@ -17,6 +18,11 @@ export default defineConfig({
                     buffer: true
                 })
             ]
+        }
+    },
+    build: {
+        rollupOptions: {
+            plugins: [rollupNodePolyFill()]
         }
     }
 });
