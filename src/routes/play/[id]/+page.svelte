@@ -24,6 +24,7 @@
     let prepared: string[] = [];
     let originalLyrics: Line[];
     let lyricsText: string[] = [];
+    let onAdjustingProgress = false;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -131,16 +132,30 @@
         }
     }
 
+    function adjustRealProgress(progress: number) {
+        if (audioPlayer) {
+            currentProgress = duration * progress;
+        }
+    }
+
     function adjustVolume(targetVolume: number) {
         if (audioPlayer) {
             audioPlayer.volume = targetVolume;
         }
     }
 
+    function setOnSlide(value: boolean) {
+        onAdjustingProgress = value;
+    }
+
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
-            if (audioPlayer !== null && audioPlayer.currentTime !== undefined) {
+            if (
+                audioPlayer !== null &&
+                audioPlayer.currentTime !== undefined &&
+                onAdjustingProgress === false
+            ) {
                 currentProgress = audioPlayer.currentTime;
             }
         }, 100);
@@ -156,6 +171,10 @@
     readDB();
 </script>
 
+<svelte:head>
+    <title>{name} - Aquavox</title>
+</svelte:head>
+
 <Background coverId={audioId} />
 <Cover {coverPath} />
 <InteractiveBox
@@ -168,7 +187,13 @@
     {paused}
     {adjustProgress}
     {adjustVolume}
+    {adjustRealProgress}
+    onSlide={onAdjustingProgress}
+    {setOnSlide}
 />
+
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} />
+
 <audio
     bind:this={audioPlayer}
     controls
@@ -178,5 +203,3 @@
         audioPlayer.pause();
     }}
 ></audio>
-
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} />

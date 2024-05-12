@@ -1,51 +1,18 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import localforage from 'localforage';
-    import Background from '$lib/components/background.svelte';
-    let audioInput: any;
-    let coverInput: any;
-    const audioId = 'd5a2e306-ddea-4fc3-9927-c79dcb3a4071';
+    import localforage from "$lib/storage";
+    let musicList;
 
-    // Initialize IndexedDB
-    localforage.config({
-        driver: localforage.INDEXEDDB,
-        name: 'audioDB'
-    });
-    onMount(() => {
-        // Handle audio input change
-        audioInput.addEventListener('change', function (e: any) {
-            const file: File = e.target.files[0];
-            if (file) {
-                localforage.setItem(audioId + '-file', file);
-            }
-        });
-
-        coverInput.addEventListener('change', function (e: any) {
-            const file = e.target.files[0];
-            if (file) {
-                localforage.setItem(audioId + '-cover', file);
-            }
-        });
-        return () => {
-            ;
-        };
-    });
+    function extractId(key: string) {
+        return key.split('-').pop();
+    }
+    localforage.iterate(function (value, key, iterationNumber) {
+        console.log(extractId(key));
+    })
 </script>
 
-<p>
-    Select Audio File:
-    <input type="file" bind:this={audioInput} />
-</p>
-<p>
-    Select Cover File:
-    <input type="file" bind:this={coverInput} />
-</p>
-<input
-    type="text"
-    placeholder="Input song id"
-    id="audioId"
-    value="d5a2e306-ddea-4fc3-9927-c79dcb3a4071"
-    style="width: 36ch"
-/>
-
-<Background coverId={audioId} />
+<div
+    class="absolute w-screen md:w-2/3 left-0 md:left-[16.6667%] px-[3%] md:px-0 top-16"
+>
+    <h1>AquaVox</h1>
+    <h2>音乐库</h2>
+</div>

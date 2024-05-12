@@ -9,8 +9,10 @@
     export let volume: number = 1;
     export let clickPlay: Function;
     export let adjustProgress: Function;
+    export let adjustRealProgress: Function;
     export let adjustVolume: Function;
-    let onSlide = false;
+    export let onSlide: boolean;
+    export let setOnSlide: Function;
     let progressBar: HTMLInputElement;
     let volumeBar: HTMLInputElement;
 
@@ -18,12 +20,16 @@
         adjustProgress(e.target.value / (duration + 0.001));
     }
 
+    function progressBarOnInput(e: any) {
+        adjustRealProgress(e.target.value / (duration + 0.001));
+    }
+
     function volumeBarOnChange(e: any) {
         adjustVolume(e.target.value);
     }
 </script>
 
-<div class="interactive-box">
+<div class="absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]">
     <div class="song-info">
         <span class="song-name text-shadow">{name}</span><br />
         <span class="song-author">{singer}</span>
@@ -34,10 +40,11 @@
             class="progress-bar shadow-md"
             bind:this={progressBar}
             on:change={progressBarOnChange}
-            on:mousedown={() => (onSlide = true)}
+            on:input={progressBarOnInput}
+            on:mousedown={() => setOnSlide(true)}
             on:mouseup={() => {
                 setTimeout(() => {
-                    onSlide = false;
+                    setOnSlide(false);
                 }, 50);
             }}
             type="range"
@@ -194,14 +201,5 @@
     }
     .time-total {
         right: 0;
-    }
-    .interactive-box {
-        user-select: none;
-        position: absolute;
-        width: 55vh;
-        min-width: 27vw;
-        top: 69vh;
-        height: 15rem;
-        left: 10vw;
     }
 </style>

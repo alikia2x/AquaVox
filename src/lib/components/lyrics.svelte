@@ -37,12 +37,8 @@
             for (let i = 0; i < lyrics.length; i++) {
                 const offset = Math.abs(i - currentLyricIndex);
                 const blurRadius = Math.min(offset * 1, 16);
-                const fontSize = i === currentLyricIndex ? '3.5rem' : '3rem';
-                const lineHeight = i === currentLyricIndex ? '4.5rem' : '4rem';
                 if (refs[i]) {
                     refs[i].style.filter = `blur(${blurRadius}px)`;
-                    refs[i].style.fontSize = fontSize;
-                    refs[i].style.lineHeight = lineHeight;
                 }
             }
             if (!found) {
@@ -60,7 +56,10 @@
 </script>
 
 {#if lyrics && originalLyrics}
-    <div class="lyrics" style="overflow-y: auto">
+    <div
+        class="absolute top-0 w-screen xl:w-[52vw] xl:left-[45vw] xl:px-[3vw] h-screen font-sans 
+        text-left scroll-smooth no-scrollbar overflow-y-auto"
+    >
         {#each lyrics as lyric, i}
             <p bind:this={_refs[i]} class={getClass(i, progress)}>
                 {lyric}
@@ -70,27 +69,18 @@
 {/if}
 
 <style>
-    .lyrics {
-        position: absolute;
-        width: 52vw;
-        left: 45vw;
-        padding-left: 3vw;
-        padding-right: 3vw;
-        height: 100vh;
-        font-family: sans-serif;
-        text-align: left;
-        scroll-behavior: smooth;
+    .no-scrollbar {
         scrollbar-width: none;
     }
-    ::-webkit-scrollbar {
+    .no-scrollbar::-webkit-scrollbar {
         width: 0;
     }
     .current-lyric {
         position: relative;
         color: white;
         font-weight: 600;
-        font-size: 3.5rem;
-        line-height: 4.5rem;
+        font-size: 2rem;
+        line-height: 2.5rem;
         top: 1rem;
         transition: 0.2s;
         margin: 2rem 0.3rem;
@@ -116,5 +106,12 @@
         top: 1rem;
         transition: 0.2s;
         margin: 2rem 0rem;
+    }
+
+    @media (min-width: 1024px) {
+        .current-lyric {
+            font-size: 3.5rem;
+            line-height: 4.5rem;
+        }
     }
 </style>

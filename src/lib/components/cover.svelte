@@ -1,5 +1,4 @@
 <script lang="ts">
-    import localforage from '$lib/storage';
     import type { Writable } from 'svelte/store';
     export let coverPath: Writable<string>;
     let path: string = '';
@@ -9,21 +8,6 @@
     });
 </script>
 
-<img class="cover" src={path} alt="封面" />
-
-<style>
-    .cover {
-        user-select: none;
-        position: absolute;
-        z-index: 1;
-        width: 55vh;
-        min-width: 27vw;
-        min-height: 27vw;
-        object-fit: cover;
-        left: 10vw;
-        top: 40vh;
-        transform: translate(0, -50%);
-        border-radius: 1rem;
-        box-shadow: 0 0 1rem 0.5rem rgba(0, 0, 0, 0.1);
-    }
-</style>
+<img class="absolute shadow-md select-none z-10 object-cover rounded-2xl max-h-[calc(94vh-18rem)] md:max-h-[calc(94vh-20rem)] xl:w-auto max-w-[90%] md:max-w-[75%] xl:max-w-[37vw]
+ bottom-72 md:bottom-80
+    left-1/2 translate-x-[-50%] xl:left-[25vw]" src={path} alt="封面" />
