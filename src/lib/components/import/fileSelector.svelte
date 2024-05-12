@@ -6,7 +6,7 @@
     import { fileListState } from '$lib/state/fileList.state';
     import AddIcon from './addIcon.svelte';
     const fileItems = useAtom(fileListState);
-    export let accept: string = "audio/*";
+    export let accept: string = ".aac, .mp3, .wav, .ogg, .flac";
 
     onMount(() => {
         audioFiles.addEventListener('change', function (e: any) {

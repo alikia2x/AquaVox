@@ -3,6 +3,7 @@
 
 </script>
 
+<h1 class="text-3xl text-red-500"><a href="/">AquaVox</a></h1>
 <h1>导入</h1>
 <p class="leading-10">希望从哪里导入你的歌曲？</p>
 <SourceCard title="本地" dest="/import/local" details="从本地导入歌曲添加到 AquaVox 的本地音乐库。

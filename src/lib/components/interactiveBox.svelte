@@ -1,5 +1,6 @@
 <script lang="ts">
     import formatDuration from '$lib/formatDuration';
+    import { onMount } from 'svelte';
 
     export let name: string;
     export let singer: string = '';
@@ -13,8 +14,12 @@
     export let adjustVolume: Function;
     export let onSlide: boolean;
     export let setOnSlide: Function;
+    export let hasLyrics: boolean;
+
     let progressBar: HTMLInputElement;
     let volumeBar: HTMLInputElement;
+    let showInfoTop: boolean = false;
+    const mql = window.matchMedia('(max-width: 1280px)');
 
     function progressBarOnChange(e: any) {
         adjustProgress(e.target.value / (duration + 0.001));
@@ -27,13 +32,37 @@
     function volumeBarOnChange(e: any) {
         adjustVolume(e.target.value);
     }
+
+    onMount(() => {
+        mql.addEventListener('change', (e) => {
+            showInfoTop = e.matches && hasLyrics;
+        });
+    });
+
+    $: {
+        showInfoTop = mql.matches && hasLyrics;
+    }
 </script>
 
-<div class="absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]">
-    <div class="song-info">
+{#if showInfoTop}
+    <div class="absolute top-6 md:top-12 left-28 md:left-48 lg:left-64 flex-col">
         <span class="song-name text-shadow">{name}</span><br />
         <span class="song-author">{singer}</span>
     </div>
+{/if}
+
+<div
+    class={"absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] z-10 " + (hasLyrics
+        ? "lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]"
+        : "lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]")}
+>
+    {#if !showInfoTop}
+        <div class="song-info">
+            <span class="song-name text-shadow">{name}</span><br />
+            <span class="song-author">{singer}</span>
+        </div>
+    {/if}
+
     <div class="progress top-16">
         <div class="time-indicator text-shadow-md time-current">{formatDuration(progress)}</div>
         <input

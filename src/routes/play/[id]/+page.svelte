@@ -10,6 +10,7 @@
     import { writable } from 'svelte/store';
     import srtParser2 from 'srt-parser-2';
     import type { Line } from 'srt-parser-2';
+    import type { IAudioMetadata } from 'music-metadata-browser';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement;
@@ -25,6 +26,7 @@
     let originalLyrics: Line[];
     let lyricsText: string[] = [];
     let onAdjustingProgress = false;
+    let hasLyrics: boolean;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -64,8 +66,11 @@
     }
 
     function readDB() {
-        getAudioIDMetadata(audioId, (metadata: any) => {
+        getAudioIDMetadata(audioId, (metadata: IAudioMetadata | null) => {
+            if (!metadata) return;
             duration = metadata.format.duration ? metadata.format.duration : 0;
+            console.log(metadata);
+            singer = metadata.common.artist ? metadata.common.artist : '未知歌手';
             prepared.push('duration');
         });
         localforage.getItem(`${audioId}-cover`, function (err, file) {
@@ -168,6 +173,14 @@
         }
     }
 
+    $: {
+        if (originalLyrics) {
+            hasLyrics = true;
+        } else {
+            hasLyrics = false;
+        }
+    }
+
     readDB();
 </script>
 
@@ -176,7 +189,7 @@
 </svelte:head>
 
 <Background coverId={audioId} />
-<Cover {coverPath} />
+<Cover {coverPath} {hasLyrics} />
 <InteractiveBox
     {name}
     {singer}
@@ -190,6 +203,7 @@
     {adjustRealProgress}
     onSlide={onAdjustingProgress}
     {setOnSlide}
+    {hasLyrics}
 />
 
 <Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} />

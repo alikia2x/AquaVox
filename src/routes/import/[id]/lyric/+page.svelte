@@ -10,6 +10,7 @@
     let status = "";
 </script>
 
+<h1 class="text-3xl text-red-500"><a href="/">AquaVox</a></h1>
 <h1>歌词导入</h1>
 <p>当前为 <span class="text-zinc-700 dark:text-zinc-400">{audioId}</span> 导入歌词</p>
 

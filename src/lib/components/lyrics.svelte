@@ -57,8 +57,8 @@
 
 {#if lyrics && originalLyrics}
     <div
-        class="absolute top-0 w-screen xl:w-[52vw] xl:left-[45vw] xl:px-[3vw] h-screen font-sans 
-        text-left scroll-smooth no-scrollbar overflow-y-auto"
+        class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
+        text-left scroll-smooth no-scrollbar overflow-y-auto z-[1] lyrics"
     >
         {#each lyrics as lyric, i}
             <p bind:this={_refs[i]} class={getClass(i, progress)}>
@@ -69,6 +69,9 @@
 {/if}
 
 <style>
+    .lyrics {
+        mask-image: linear-gradient(rgba(0,0,0,0) 0%, rgba(0,0,0,1) 2rem, rgba(0,0,0,1) calc(100% - 5rem), rgba(0,0,0,0) 100%);
+    }
     .no-scrollbar {
         scrollbar-width: none;
     }
@@ -79,39 +82,67 @@
         position: relative;
         color: white;
         font-weight: 600;
-        font-size: 2rem;
-        line-height: 2.5rem;
+        font-size: 2.3rem;
+        line-height: 2.7rem;
         top: 1rem;
         transition: 0.2s;
-        margin: 2rem 0.3rem;
+        margin: 1rem 0.3rem;
     }
     .previous-lyric {
         position: relative;
         color: rgba(255, 255, 255, 0.7);
         font-weight: 600;
-        font-size: 3rem;
-        line-height: 3.5rem;
+        font-size: 2.2rem;
+        line-height: 2.7rem;
         filter: blur(1px);
         top: 1rem;
         transition: 0.2s;
-        margin: 2rem 0rem;
+        margin: 1rem 0rem;
     }
     .after-lyric {
         position: relative;
         color: rgba(255, 255, 255, 0.7);
         font-weight: 600;
-        font-size: 3rem;
-        line-height: 3.5rem;
+        font-size: 2.2rem;
+        line-height: 2.7rem;
         filter: blur(1px);
         top: 1rem;
         transition: 0.2s;
-        margin: 2rem 0rem;
+        margin: 1rem 0rem;
+    }
+    @media (min-width: 768px) {
+        .current-lyric {
+            font-size: 3rem;
+            line-height: 4rem;
+            margin: 2.4rem 0rem;
+        }
+        .after-lyric {
+            font-size: 2.8rem;
+            line-height: 3.3rem;
+            margin: 2.4rem 0rem;
+        }
+        .previous-lyric {
+            font-size: 2.8rem;
+            line-height: 3.3rem;
+            margin: 2.4rem 0rem;
+        }
     }
 
     @media (min-width: 1024px) {
         .current-lyric {
             font-size: 3.5rem;
             line-height: 4.5rem;
+            margin: 2rem 0rem;
+        }
+        .after-lyric {
+            font-size: 3rem;
+            line-height: 3.5rem;
+            margin: 2rem 0rem;
+        }
+        .previous-lyric {
+            font-size: 3rem;
+            line-height: 3.5rem;
+            margin: 2rem 0rem;
         }
     }
 </style>

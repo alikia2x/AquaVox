@@ -12,6 +12,7 @@
     const success = useAtom(localImportSuccess);
 </script>
 
+<h1 class="text-3xl text-red-500"><a href="/">AquaVox</a></h1>
 <h1>本地导入向导</h1>
 <p>欢迎使用本地导入向导！</p>
 <p>
