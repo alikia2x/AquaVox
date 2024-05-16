@@ -1,11 +1,12 @@
 <script lang="ts">
+    import BezierEasing from 'bezier-easing';
     import type { Line } from 'srt-parser-2';
     export let lyrics: string[];
     export let originalLyrics: Line[];
     export let progress: number;
     function userSlideProgress() {
         systemCouldScrollSince = 0;
-    };
+    }
     export { userSlideProgress };
 
     let currentScrollPos = '';
@@ -30,15 +31,18 @@
         function animateScroll(timestamp: number) {
             const elapsedTime = timestamp - startTime;
             const progress = Math.min(elapsedTime / duration, 1);
-            const easedProgress = timingFunction(progress, 1.1, 0, 1, 1);
+            const easedProgress = timingFunction(progress, 0.38, 0, 0.24, 0.99);
             element.scrollTop = start + change * easedProgress;
 
             console.log(elapsedTime);
             if (elapsedTime < duration) {
                 requestAnimationFrame(animateScroll);
             } else {
-                console.log('?');
-                systemScrolling = false;
+                console.log('!');
+                setTimeout(() => {
+                    console.log('?');
+                    systemScrolling = false;
+                }, 100);
             }
         }
 
@@ -54,7 +58,7 @@
             return a * Math.pow(t, 3) + b * Math.pow(t, 2) + c * t;
         }
 
-        return cubicBezier(progress, p1x, p2x);
+        return BezierEasing(p1x, p1y, p2x, p2y)(progress);
     }
 
     function getClass(lyricIndex: number, progress: number) {
@@ -80,8 +84,12 @@
                     found = true;
                     const currentRef = refs[i];
                     if (currentRef && currentScrollPos !== currentLyric.text) {
-                        const targetScroll = lyricsContainer.scrollTop + currentRef.getBoundingClientRect().top - 320;
-                        const duration = 700;
+                        const targetScroll =
+                            lyricsContainer.scrollTop +
+                            currentRef.getBoundingClientRect().top -
+                            lyricsContainer.getBoundingClientRect().height * 0.1 -
+                            128;
+                        const duration = 450;
                         smoothScrollTo(lyricsContainer, targetScroll, duration, customBezier);
                         lastScroll = 0;
                         currentScrollPos = currentLyric.text;
@@ -186,7 +194,7 @@
         line-height: 2.7rem;
         top: 1rem;
         transition: 0.2s;
-        margin: 1rem 0.3rem;
+        margin: 1rem 0rem;
     }
     .previous-lyric {
         position: relative;

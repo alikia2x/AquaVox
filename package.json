@@ -1,6 +1,6 @@
 {
 	"name": "aquavox",
-	"version": "1.9.0",
+	"version": "1.9.1",
 	"private": false,
 	"scripts": {
 		"dev": "vite dev",
@@ -38,6 +38,7 @@
 	"type": "module",
 	"dependencies": {
 		"@esbuild-plugins/node-globals-polyfill": "^0.2.3",
+		"bezier-easing": "^2.1.0",
 		"jotai": "^2.8.0",
 		"jotai-svelte": "^0.0.2",
 		"localforage": "^1.10.0",
