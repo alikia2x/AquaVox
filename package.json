@@ -1,6 +1,6 @@
 {
 	"name": "aquavox",
-	"version": "1.8.2",
+	"version": "1.8.3",
 	"private": false,
 	"scripts": {
 		"dev": "vite dev",
@@ -10,7 +10,8 @@
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"test": "vitest",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"go": "PORT=4173 node build"
 	},
 	"devDependencies": {
 		"@iconify/svelte": "^4.0.1",
