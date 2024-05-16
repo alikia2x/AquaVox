@@ -19,6 +19,9 @@
     let progressBar: HTMLInputElement;
     let volumeBar: HTMLInputElement;
     let showInfoTop: boolean = false;
+    let isInfoTopOverflowing = false;
+    let songInfoTopContainer: HTMLDivElement;
+    let songInfoTopContent: HTMLSpanElement;
     const mql = window.matchMedia('(max-width: 1280px)');
 
     function progressBarOnChange(e: any) {
@@ -40,6 +43,15 @@
     });
 
     $: {
+        console.log(songInfoTopContainer, songInfoTopContent);
+        if (songInfoTopContainer && songInfoTopContent) {
+            console.log(songInfoTopContent.offsetWidth, songInfoTopContainer.offsetWidth);
+            isInfoTopOverflowing =
+                songInfoTopContent.offsetWidth > songInfoTopContainer.offsetWidth;
+        }
+    }
+
+    $: {
         showInfoTop = mql.matches && hasLyrics;
     }
 </script>
@@ -52,13 +64,19 @@
 {/if}
 
 <div
-    class={"absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] z-10 " + (hasLyrics
-        ? "lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]"
-        : "lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]")}
+    class={'absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] z-10 ' +
+        (hasLyrics
+            ? 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]'
+            : 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]')}
 >
     {#if !showInfoTop}
         <div class="song-info">
-            <span class="song-name text-shadow">{name}</span><br />
+            <div class="song-info-top {isInfoTopOverflowing ? 'animate' : ''}" bind:this={songInfoTopContainer}>
+                <span
+                    class="song-name text-shadow {isInfoTopOverflowing ? 'animate' : ''}"
+                    bind:this={songInfoTopContent}>{name}</span
+                >
+            </div>
             <span class="song-author">{singer}</span>
         </div>
     {/if}
@@ -156,17 +174,56 @@
         user-select: text;
         position: absolute;
         width: auto;
+        max-width: 100%;
         left: 50%;
         transform: translate(-50%, 0);
         top: 1rem;
         font-family: sans-serif;
         text-align: center;
     }
+    .song-info-top {
+        white-space: nowrap;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .song-info-top.animate {
+        mask-image: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 1) 2rem,
+            rgba(0, 0, 0, 1) calc(100% - 5rem),
+            rgba(0, 0, 0, 0) 100%
+        );
+    }
+
     .song-name {
+        position: relative;
         font-size: 1.6rem;
         line-height: 2.5rem;
+        overflow-y: auto;
         font-weight: 700;
         color: white;
+        scrollbar-width: none;
+        height: 2.5rem;
+        display: inline-block;
+    }
+    .song-name.animate {
+        animation: scroll 10s linear infinite;
+    }
+    .song-name::-webkit-scrollbar {
+        display: none;
+    }
+    @keyframes scroll {
+        0% {
+            transform: translateX(100%);
+        }
+        50% {
+            transform: translateX(0%);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
     }
     .song-author {
         font-size: 1.2rem;

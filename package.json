@@ -1,6 +1,6 @@
 {
 	"name": "aquavox",
-	"version": "1.8.1",
+	"version": "1.8.2",
 	"private": false,
 	"scripts": {
 		"dev": "vite dev",
@@ -15,6 +15,7 @@
 	"devDependencies": {
 		"@iconify/svelte": "^4.0.1",
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-node": "^5.0.1",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/eslint": "^8.56.0",

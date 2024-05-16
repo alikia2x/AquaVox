@@ -63,7 +63,7 @@
                     >
                         <span class="font-bold">{musicList[id].name}</span> <br />
                         <span>{toHumanSize(musicList[id].size)}</span> ·
-                        <a href={`/import/${id}/lyric`}>导入歌词</a>
+                        <a class="!no-underline" href={`/import/${id}/lyric`}>导入歌词</a>
                         {#if musicList[id].coverUrl}
                             <img
                                 class="h-16 w-16 object-cover absolute rounded-lg right-2 top-2"
@@ -77,7 +77,7 @@
         </ul>
     </div>
     <p>
-        AquaVox 1.8.1 · 早期公开预览 · 源代码参见
+        AquaVox 1.8.2 · 早期公开预览 · 源代码参见
         <a href="https://github.com/alikia2x/aquavox">GitHub</a>
     </p>
     <a href="/import">导入音乐</a> <br />
