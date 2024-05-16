@@ -27,6 +27,7 @@
     let lyricsText: string[] = [];
     let onAdjustingProgress = false;
     let hasLyrics: boolean;
+    let lyricComp: any;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -134,12 +135,14 @@
         if (audioPlayer) {
             audioPlayer.currentTime = duration * progress;
             currentProgress = duration * progress;
+            lyricComp.userSlideProgress();
         }
     }
 
     function adjustRealProgress(progress: number) {
         if (audioPlayer) {
             currentProgress = duration * progress;
+            lyricComp.userSlideProgress();
         }
     }
 
@@ -163,8 +166,14 @@
             ) {
                 currentProgress = audioPlayer.currentTime;
             }
-        }, 100);
+        }, 17);
     }
+
+    import { onMount } from 'svelte';
+
+	onMount(() => {
+		audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
+	});
 
     $: {
         if (audioPlayer) {
@@ -206,7 +215,7 @@
     {hasLyrics}
 />
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} />
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} bind:this={lyricComp}/>
 
 <audio
     bind:this={audioPlayer}

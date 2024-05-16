@@ -34,6 +34,7 @@
 
     function volumeBarOnChange(e: any) {
         adjustVolume(e.target.value);
+        localStorage.setItem('volume', e.target.value);
     }
 
     onMount(() => {
@@ -43,9 +44,7 @@
     });
 
     $: {
-        console.log(songInfoTopContainer, songInfoTopContent);
         if (songInfoTopContainer && songInfoTopContent) {
-            console.log(songInfoTopContent.offsetWidth, songInfoTopContainer.offsetWidth);
             isInfoTopOverflowing =
                 songInfoTopContent.offsetWidth > songInfoTopContainer.offsetWidth;
         }
@@ -77,7 +76,7 @@
                     bind:this={songInfoTopContent}>{name}</span
                 >
             </div>
-            <span class="song-author">{singer}</span>
+            <span class="song-author text-shadow-lg">{singer}</span>
         </div>
     {/if}
 
