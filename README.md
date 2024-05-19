@@ -8,6 +8,10 @@ AquaVox 是一个为中文虚拟歌手爱好者献上的产品。
 
 ## 使用
 
+当前 AquaVox 的公开预览版位于[aquavox.a2x.pub](https://aquavox.a2x.pub)上。
+
+[![wakatime](https://wakatime.com/badge/user/018f0628-909b-47e4-bcfd-0153235426d9/project/b67c03ef-ee0b-45f2-85ec-d9c60269cc55.svg)](https://wakatime.com/badge/user/018f0628-909b-47e4-bcfd-0153235426d9/project/b67c03ef-ee0b-45f2-85ec-d9c60269cc55)
+
 ## 项目起源
 
 **开发者寒寒的话：**  
