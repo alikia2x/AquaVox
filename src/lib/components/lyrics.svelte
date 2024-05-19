@@ -3,6 +3,7 @@
     import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
     import progressBarRaw from '$lib/state/progressBarRaw';
     import type { LrcJsonData } from 'lrc-parser-ts';
+    import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     export let lyrics: string[];
     export let originalLyrics: LrcJsonData;
     export let progress: number;
@@ -15,6 +16,7 @@
     let lyricsContainer: HTMLDivElement;
     let nextUpdate = -1;
     let lastAdjustProgress = 0;
+    let localProgress = 0;
 
     let refs: HTMLParagraphElement[] = [];
     let _refs: any[] = [];
@@ -94,7 +96,6 @@
         const scripts = originalLyrics.scripts;
         if (!scripts) return;
         if (v) {
-            console.log('!');
             for (let i = 0; i < scripts.length; i++) {
                 refs[i].style.filter = `blur(0px)`;
             }
@@ -109,10 +110,20 @@
         }
     });
 
+    // progressBarRaw is used to detect progress changes at system-level (not in AquaVox)
     progressBarRaw.subscribe((progress: number) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
-            const currentLyric = refs[getLyricIndex(progress)];
-            b(currentLyric);
+            if (Math.abs(localProgress - progress) > 0.6) {
+                const currentLyric = refs[getLyricIndex(progress)];
+                b(currentLyric);
+            }
+            localProgress = progress;
+        }
+    });
+
+    // progressBarSlideValue is to detect progress bar sliding event
+    progressBarSlideValue.subscribe((_) => {
+        if ($userAdjustingProgress === false && getLyricIndex) {
             lastAdjustProgress = currentPositionIndex;
         }
     });
@@ -121,7 +132,7 @@
         if ($userAdjustingProgress) {
             nextUpdate = progress;
         } else {
-            if (0 < nextUpdate - progress && nextUpdate - progress < 0.05) {
+            if (nextUpdate - progress < 0.05) {
                 if (
                     currentPositionIndex >= 0 &&
                     currentPositionIndex !== currentAnimationIndex &&
@@ -163,9 +174,11 @@
         bind:this={lyricsContainer}
     >
         {#if debugMode}
-            <p class="fixed top-6 right-20">
+            <p class="fixed top-6 right-20 font-mono text-sm">
                 LyricIndex: {currentLyricIndex} PositionIndex: {currentPositionIndex} AnimationIndex:{currentAnimationIndex}
-                NextUpdate: {Math.floor(nextUpdate / 60)}m {Math.round((nextUpdate % 60) * 100) / 100}s
+                NextUpdate: {nextUpdate}
+                Progress: {progress.toFixed(2)}
+                lastAdjustProgress: {lastAdjustProgress}
             </p>
         {/if}
         {#each lyrics as lyric, i}

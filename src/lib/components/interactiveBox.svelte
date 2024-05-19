@@ -2,7 +2,7 @@
     import formatDuration from '$lib/formatDuration';
     import { onMount } from 'svelte';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
-    import progressBarRaw from '$lib/state/progressBarRaw';
+    import progressBarSlideValue from '$lib/state/progressBarSlideValue';
 
     export let name: string;
     export let singer: string = '';
@@ -18,22 +18,39 @@
     export let hasLyrics: boolean;
 
     let progressBar: HTMLDivElement;
-    let volumeBar: HTMLInputElement;
+    let volumeBar: HTMLDivElement;
     let showInfoTop: boolean = false;
     let isInfoTopOverflowing = false;
     let songInfoTopContainer: HTMLDivElement;
     let songInfoTopContent: HTMLSpanElement;
+    let lastTouchProgress: number;
+    let userAdjustingVolume = false;
 
     const mql = window.matchMedia('(max-width: 1280px)');
 
-    function volumeBarOnChange(e: any) {
-        adjustVolume(e.target.value);
-        localStorage.setItem('volume', e.target.value);
+    function volumeBarOnChange(e: MouseEvent) {
+        const value = e.offsetX / volumeBar.getBoundingClientRect().width;
+        adjustVolume(value);
+        localStorage.setItem('volume', value.toString());
+    }
+
+    function volumeBarChangeTouch(e: TouchEvent) {
+        const value = turncate(
+                            e.touches[0].clientX - volumeBar.getBoundingClientRect().x,
+                            0,
+                            volumeBar.getBoundingClientRect().width
+                        ) / volumeBar.getBoundingClientRect().width;
+        adjustVolume(value);
+        localStorage.setItem('volume', value.toString());
     }
 
     function progressBarOnClick(e: MouseEvent) {
         adjustProgress(e.offsetX / progressBar.getBoundingClientRect().width);
-        progressBarRaw.set(e.offsetX / progressBar.getBoundingClientRect().width * duration);
+        progressBarSlideValue.set((e.offsetX / progressBar.getBoundingClientRect().width) * duration);
+    }
+
+    function turncate(value: number, min: number, max: number) {
+        return Math.min(Math.max(value, min), max);
     }
 
     onMount(() => {
@@ -94,6 +111,30 @@
                     adjustDisplayProgress(e.offsetX / progressBar.getBoundingClientRect().width);
                 }
             }}
+            on:touchstart={(e) => {
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+                userAdjustingProgress.set(true);
+            }}
+            on:touchmove={(e) => {
+                e.preventDefault();
+                userAdjustingProgress.set(true);
+                if ($userAdjustingProgress) {
+                    lastTouchProgress =
+                        turncate(
+                            e.touches[0].clientX - progressBar.getBoundingClientRect().x,
+                            0,
+                            progressBar.getBoundingClientRect().width
+                        ) / progressBar.getBoundingClientRect().width;
+                    adjustDisplayProgress(lastTouchProgress);
+                }
+            }}
+            on:touchend={(e) => {
+                e.preventDefault();
+                userAdjustingProgress.set(false);
+                adjustProgress(lastTouchProgress);
+            }}
             on:mouseup={() => {
                 userAdjustingProgress.set(false);
             }}
@@ -127,7 +168,7 @@
     </div>
     <div class="relative top-52 h-6 flex">
         <img class="scale-75" src="/volumeDown.svg" alt="最小音量" />
-        <input
+        <!-- <input
             class="mx-2 progress-bar shadow-md !translate-y-[-50%] !top-1/2"
             bind:this={volumeBar}
             on:input={volumeBarOnChange}
@@ -136,7 +177,49 @@
             max="1"
             step="0.01"
             value={$userAdjustingProgress ? volumeBar.value : volume}
-        />
+        /> -->
+        <div
+            class="progress-bar shadow-md !top-1/2 !translate-y-[-50%]"
+            on:click={(e) => volumeBarOnChange(e)}
+            bind:this={volumeBar}
+            on:mousedown={() => {
+                userAdjustingVolume = true;
+            }}
+            on:mousemove={(e) => {
+                if (userAdjustingVolume) {
+                    volumeBarOnChange(e);
+                }
+            }}
+            on:touchstart={(e) => {
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+                userAdjustingVolume = true;
+            }}
+            on:touchmove={(e) => {
+                e.preventDefault();
+                userAdjustingVolume = true;
+                if (userAdjustingVolume) {
+                    volumeBarChangeTouch(e);
+                }
+            }}
+            on:touchend={(e) => {
+                e.preventDefault();
+                userAdjustingVolume = false;
+            }}
+            on:mouseup={() => {
+                userAdjustingVolume = false;
+            }}
+            role="slider"
+            aria-valuemin="0"
+            aria-valuemax="1"
+            aria-valuenow={volume}
+            tabindex="0"
+            on:keydown
+            on:keyup
+        >
+            <div class="bar" style={`width: ${volume * 100}%;`}></div>
+        </div>
         <img class="scale-75" src="/volumeUp.svg" alt="最大音量" />
     </div>
 </div>
