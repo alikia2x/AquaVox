@@ -1,6 +1,8 @@
 <script lang="ts">
     import formatDuration from '$lib/formatDuration';
     import { onMount } from 'svelte';
+    import userAdjustingProgress from '$lib/state/userAdjustingProgress';
+    import progressBarRaw from '$lib/state/progressBarRaw';
 
     export let name: string;
     export let singer: string = '';
@@ -10,31 +12,28 @@
     export let volume: number = 1;
     export let clickPlay: Function;
     export let adjustProgress: Function;
-    export let adjustRealProgress: Function;
+    export let adjustDisplayProgress: Function;
     export let adjustVolume: Function;
-    export let onSlide: boolean;
-    export let setOnSlide: Function;
+
     export let hasLyrics: boolean;
 
-    let progressBar: HTMLInputElement;
+    let progressBar: HTMLDivElement;
     let volumeBar: HTMLInputElement;
     let showInfoTop: boolean = false;
     let isInfoTopOverflowing = false;
     let songInfoTopContainer: HTMLDivElement;
     let songInfoTopContent: HTMLSpanElement;
+
     const mql = window.matchMedia('(max-width: 1280px)');
-
-    function progressBarOnChange(e: any) {
-        adjustProgress(e.target.value / (duration + 0.001));
-    }
-
-    function progressBarOnInput(e: any) {
-        adjustRealProgress(e.target.value / (duration + 0.001));
-    }
 
     function volumeBarOnChange(e: any) {
         adjustVolume(e.target.value);
         localStorage.setItem('volume', e.target.value);
+    }
+
+    function progressBarOnClick(e: MouseEvent) {
+        adjustProgress(e.offsetX / progressBar.getBoundingClientRect().width);
+        progressBarRaw.set(e.offsetX / progressBar.getBoundingClientRect().width * duration);
     }
 
     onMount(() => {
@@ -45,8 +44,7 @@
 
     $: {
         if (songInfoTopContainer && songInfoTopContent) {
-            isInfoTopOverflowing =
-                songInfoTopContent.offsetWidth > songInfoTopContainer.offsetWidth;
+            isInfoTopOverflowing = songInfoTopContent.offsetWidth > songInfoTopContainer.offsetWidth;
         }
     }
 
@@ -81,31 +79,39 @@
     {/if}
 
     <div class="progress top-16">
-        <div class="time-indicator text-shadow-md time-current">{formatDuration(progress)}</div>
-        <input
+        <div class="time-indicator text-shadow-md time-current">
+            {formatDuration(progress)}
+        </div>
+        <div
             class="progress-bar shadow-md"
+            on:click={(e) => progressBarOnClick(e)}
             bind:this={progressBar}
-            on:change={progressBarOnChange}
-            on:input={progressBarOnInput}
-            on:mousedown={() => setOnSlide(true)}
-            on:mouseup={() => {
-                setTimeout(() => {
-                    setOnSlide(false);
-                }, 50);
+            on:mousedown={() => {
+                userAdjustingProgress.set(true);
             }}
-            type="range"
-            min="0"
-            max={duration - 0.2}
-            step="1"
-            value={onSlide ? progressBar.value : progress}
-        />
+            on:mousemove={(e) => {
+                if ($userAdjustingProgress) {
+                    adjustDisplayProgress(e.offsetX / progressBar.getBoundingClientRect().width);
+                }
+            }}
+            on:mouseup={() => {
+                userAdjustingProgress.set(false);
+            }}
+            role="slider"
+            aria-valuemin="0"
+            aria-valuemax={duration}
+            aria-valuenow={progress}
+            tabindex="0"
+            on:keydown
+            on:keyup
+        >
+            <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
+        </div>
+
         <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
     </div>
     <div class="controls top-32 flex h-16 overflow-hidden items-center justify-center">
-        <button
-            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
-            class="control-btn previous"
-        >
+        <button style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn previous">
             <img class="control-img switch-song-img" src="/previous.svg" alt="上一曲" />
         </button>
         <button
@@ -115,10 +121,7 @@
         >
             <img class="control-img" src={paused ? '/play.svg' : '/pause.svg'} alt="暂停或播放" />
         </button>
-        <button
-            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
-            class="control-btn next"
-        >
+        <button style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn next">
             <img class="control-img switch-song-img" src="/next.svg" alt="下一曲" />
         </button>
     </div>
@@ -132,7 +135,7 @@
             min="0"
             max="1"
             step="0.01"
-            value={onSlide ? volumeBar.value : volume}
+            value={$userAdjustingProgress ? volumeBar.value : volume}
         />
         <img class="scale-75" src="/volumeUp.svg" alt="最大音量" />
     </div>
@@ -252,24 +255,18 @@
     .progress-bar:hover {
         height: 0.7rem;
     }
-    .progress-bar::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 0rem;
-        height: 0.7rem;
+    .bar {
         background-color: white;
-        box-shadow: -700px 0 0 700px white;
-        cursor: pointer;
+        position: absolute;
+        content: '';
+        height: 0.4rem;
+        display: inline-block;
+        border-radius: 1rem;
+        transition: height 0.3s;
     }
 
-    .progress-bar::-moz-range-thumb {
-        appearance: none;
-        width: 0px;
-        height: 0px;
-        background-color: white;
-        box-shadow: -700px 0 0 700px white;
-        cursor: pointer;
-        border: none;
+    .progress-bar:hover .bar {
+        height: 0.7rem;
     }
 
     .time-indicator {

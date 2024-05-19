@@ -55,5 +55,6 @@
         height: 100%;
         opacity: 0;
         transition: .45s;
+        filter: brightness(0.8);
     }
 </style>

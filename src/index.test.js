@@ -6,6 +6,10 @@ describe('formatDuration test', () => {
         expect(formatDuration(120)).toBe('2:00');
     });
 
+    it('converts 119.935429 seconds to "1:59"', () => {
+        expect(formatDuration(119.935429)).toBe('1:59');
+    });
+
     it('converts 185 seconds to "3:05"', () => {
         expect(formatDuration(185)).toBe('3:05');
     });

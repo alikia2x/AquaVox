@@ -8,8 +8,8 @@
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
-    import srtParser2 from 'srt-parser-2';
-    import type { Line } from 'srt-parser-2';
+    import lrcParser, { type LrcJsonData } from 'lrc-parser-ts';
+    import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
 
     const audioId = $page.params.id;
@@ -23,11 +23,9 @@
     let paused: boolean = true;
     let launched = false;
     let prepared: string[] = [];
-    let originalLyrics: Line[];
+    let originalLyrics: LrcJsonData;
     let lyricsText: string[] = [];
-    let onAdjustingProgress = false;
     let hasLyrics: boolean;
-    let lyricComp: any;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -70,7 +68,6 @@
         getAudioIDMetadata(audioId, (metadata: IAudioMetadata | null) => {
             if (!metadata) return;
             duration = metadata.format.duration ? metadata.format.duration : 0;
-            console.log(metadata);
             singer = metadata.common.artist ? metadata.common.artist : '未知歌手';
             prepared.push('duration');
         });
@@ -95,9 +92,9 @@
             if (file) {
                 const f = file as File;
                 f.text().then((lr) => {
-                    const parser = new srtParser2();
-                    originalLyrics = parser.fromSrt(lr);
-                    for (const line of originalLyrics) {
+                    originalLyrics = lrcParser(lr);
+                    if (!originalLyrics.scripts) return;
+                    for (const line of originalLyrics.scripts) {
                         lyricsText.push(line.text);
                     }
                 });
@@ -135,14 +132,12 @@
         if (audioPlayer) {
             audioPlayer.currentTime = duration * progress;
             currentProgress = duration * progress;
-            lyricComp.userSlideProgress();
         }
     }
 
-    function adjustRealProgress(progress: number) {
+    function adjustDisplayProgress(progress: number) {
         if (audioPlayer) {
             currentProgress = duration * progress;
-            lyricComp.userSlideProgress();
         }
     }
 
@@ -152,24 +147,22 @@
         }
     }
 
-    function setOnSlide(value: boolean) {
-        onAdjustingProgress = value;
-    }
-
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
             if (
                 audioPlayer !== null &&
-                audioPlayer.currentTime !== undefined &&
-                onAdjustingProgress === false
+                audioPlayer.currentTime !== undefined
             ) {
-                currentProgress = audioPlayer.currentTime;
+                if ($userAdjustingProgress === false)
+                    currentProgress = audioPlayer.currentTime;
+                progressBarRaw.set(audioPlayer.currentTime);
             }
-        }, 17);
+        }, 50);
     }
 
     import { onMount } from 'svelte';
+    import progressBarRaw from '$lib/state/progressBarRaw';
 
 	onMount(() => {
 		audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
@@ -209,13 +202,11 @@
     {paused}
     {adjustProgress}
     {adjustVolume}
-    {adjustRealProgress}
-    onSlide={onAdjustingProgress}
-    {setOnSlide}
+    {adjustDisplayProgress}
     {hasLyrics}
 />
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} bind:this={lyricComp}/>
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress}/>
 
 <audio
     bind:this={audioPlayer}

@@ -16,7 +16,7 @@
 
 <div class="w-full flex my-3">
     <h2>歌词文件</h2>
-    <FileSelector accept=".srt" class="ml-auto top-2 relative" />
+    <FileSelector accept=".lrc" class="ml-auto top-2 relative" />
 </div>
 
 <FileList />
