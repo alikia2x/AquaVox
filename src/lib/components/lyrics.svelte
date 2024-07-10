@@ -69,12 +69,25 @@
             await sleep(75);
             if (refs[i - 2].getBoundingClientRect().top > lyricsContainer.getBoundingClientRect().height) break;
         }
-        for (let i = pos; i < refs.length; i++) {
-            refs[i].style.transition =
-                'transform 0s, filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-            const h = refs[i].getBoundingClientRect().height;
-            refs[i].style.transform = `translateY(${-h}px)`;
+        // 特判，鬼知道为什么
+        if (refs.length - pos < 3) {
+            for (let i = pos; i < refs.length; i++) {
+                const lyric = refs[i];
+                lyric.style.transition =
+                    'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+                lyric.style.transform = `translateY(${-h}px)`;
+                pos = i;
+                await sleep(75);
+            }
+        } else {
+            for (let i = pos; i < refs.length; i++) {
+                refs[i].style.transition =
+                    'transform 0s, filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+                const h = refs[i].getBoundingClientRect().height;
+                refs[i].style.transform = `translateY(${-h}px)`;
+            }
         }
+
         await sleep(650);
         for (let i = 0; i < refs.length; i++) {
             refs[i].style.transition =
