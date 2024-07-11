@@ -50,12 +50,8 @@
 <textarea bind:value={editingData} class="dark:bg-zinc-600 w-full min-h-[36rem] mt-6" />
 
 <button
-    class="mt-4 h-12 w-24 border-black dark:border-white border-2 flex items-center justify-center rounded-lg"
+    class="mt-4 mb-32 h-12 w-24 border-black dark:border-white border-2 flex items-center justify-center rounded-lg"
     on:click={() => {
         submit();
     }}>提交</button
 >
-
-<div class="relative h-[50vh]">
-
-</div>

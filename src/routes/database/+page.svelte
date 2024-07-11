@@ -31,11 +31,13 @@
         >
     </div>
 
-    <div class="grid">
+    <div class="grid mb-32" style="grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+            justify-content: space-between;
+            gap: 2rem 1rem;">
         {#each songList as song}
             <a
                 class="relative w-56 h-56 bg-zinc-300 dark:bg-zinc-600 rounded-lg overflow-hidden
-            shadow-lg cursor-pointer"
+            shadow-lg cursor-pointer justify-self-center"
                 href={song.url}
             >
                 <div
