@@ -168,16 +168,6 @@
     </div>
     <div class="relative top-52 h-6 flex">
         <img class="scale-75" src="/volumeDown.svg" alt="最小音量" />
-        <!-- <input
-            class="mx-2 progress-bar shadow-md !translate-y-[-50%] !top-1/2"
-            bind:this={volumeBar}
-            on:input={volumeBarOnChange}
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={$userAdjustingProgress ? volumeBar.value : volume}
-        /> -->
         <div
             class="progress-bar shadow-md !top-1/2 !translate-y-[-50%]"
             on:click={(e) => volumeBarOnChange(e)}

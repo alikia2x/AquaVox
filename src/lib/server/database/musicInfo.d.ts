@@ -1,18 +1,23 @@
 interface MusicMetadata {
+    id: string;
     name: string;
-    signer?: string | string[];
-    producer?: string;
-    lyric?: string;
-    tuning?: string | string[];
-    lyricist?: string | string[];
-    composer?: string | string[];
-    arranger?: string | string[];
-    mixing?: string | string[];
-    video?: string | string[];
-    illustrator?: string | string[];
-    songURL?: string;
-    duration?: number;
-    publishTime?: string;
-    views?: number;
-    updateTime?: string;
+    url: string;
+    singer: string[];
+    producer: string | null;
+    tuning: string[];
+    lyricist: string[];
+    composer: string[];
+    arranger: string[];
+    mixing: string[];
+    pv: string[];
+    illustrator: string[];
+    harmony: string[];
+    instruments: string[];
+    songURL: string[];
+    coverURL: string[];
+    duration: number | null;
+    views: number | null;
+    publishTime: string | null;
+    updateTime: string | null;
+    lyric: string | null;
 }

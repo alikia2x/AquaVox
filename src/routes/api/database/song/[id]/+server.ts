@@ -1,3 +1,4 @@
+import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
 
@@ -19,7 +20,11 @@ export async function POST({ params, request }) {
     }
     const filePath = `./data/pending/${params.id}-${timeStamp}.json`;
     const data: MusicMetadata = await request.json();
-    data.updateTime = new Date().getTime().toString();
-    fs.writeFileSync(filePath, JSON.stringify(data));
-    return json({});
+    data.updateTime = getCurrentFormattedDateTime();
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 4));
+    return json({
+        "message": "successfully created"
+    }, {
+        status: 201
+    });
 }
