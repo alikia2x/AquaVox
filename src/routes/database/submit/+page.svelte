@@ -27,7 +27,8 @@
     let editingData: string = JSON.stringify(templateSongData, null, 8);
 
     async function submit() {
-        fetch(`/api/database/song/${templateSongData.id}`, {
+        const dataToSubmit: MusicMetadata = JSON.parse(editingData);
+        fetch(`/api/database/song/${dataToSubmit.id}`, {
             method: 'POST',
             headers: {
                 Accept: 'application/json',
@@ -44,6 +45,8 @@
 <svelte:head>
     <title>提交新曲</title>
 </svelte:head>
+
+<h1 class="text-3xl text-red-500"><a href="/database/">AquaVox 音乐数据库</a></h1>
 
 <h1>提交新曲</h1>
 

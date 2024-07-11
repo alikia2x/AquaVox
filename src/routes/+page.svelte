@@ -85,6 +85,8 @@
         on:click={() => window.confirm('确定要删除本地数据库中所有内容吗？') && clear()}
         class="text-white bg-red-500 px-4 py-2 mt-4 rounded-md">一键清除</button
     >
+    <h2 class="mt-4"><a href="/database/">音乐数据库</a></h2>
+    <p>你可以在这里探索，提交和分享好听的歌曲。</p>
 </div>
 
 <style lang="postcss">

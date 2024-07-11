@@ -25,6 +25,8 @@
     <title>建议编辑： {data.songData.name} ({songID})</title>
 </svelte:head>
 
+<h1 class="text-3xl text-red-500"><a href="/database/">AquaVox 音乐数据库</a></h1>
+
 <h1>建议编辑： {data.songData.name} ({songID})</h1>
 
 <textarea bind:value={editingData} class="dark:bg-zinc-600 w-full min-h-[30rem] mt-6" />

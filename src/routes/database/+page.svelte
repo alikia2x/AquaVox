@@ -21,6 +21,8 @@
     <title>AquaVox 音乐数据库</title>
 </svelte:head>
 
+<h1 class="text-3xl text-red-500"><a href="/">AquaVox</a></h1>
+
 <div>
     <div class="flex justify-between items-center h-20 mb-8">
         <h1>AquaVox 音乐数据库</h1>
@@ -72,11 +74,11 @@
                         </span>
                         <div class="absolute right-2 bottom-2 text-right">
                             {#if song.duration}
-                                <span>{formatDuration(song.duration)}</span>
+                                <span style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">{formatDuration(song.duration)}</span>
                             {/if}
                             <br />
                             {#if song.views}
-                                <span>{formatViews(song.views)}</span>
+                                <span style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">{formatViews(song.views)}播放</span>
                             {/if}
                         </div>
                     </div>

@@ -3,6 +3,6 @@ export function formatViews(num: number): string {
         const formattedNum = Math.floor(num / 1000) / 10; // 向下保留1位小数
         return `${formattedNum} 万`;
     } else {
-        return num.toString();
+        return num.toString() + " ";
     }
 }
