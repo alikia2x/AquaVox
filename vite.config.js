@@ -24,5 +24,10 @@ export default defineConfig({
         rollupOptions: {
             plugins: [rollupNodePolyFill()]
         }
+    },
+    server: {
+        fs: {
+            allow: ["./package.json"]
+        }
     }
 });

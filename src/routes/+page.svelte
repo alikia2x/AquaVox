@@ -1,5 +1,6 @@
 <script lang="ts">
     import extractFileName from '$lib/extractFileName';
+    import getVersion from '$lib/getVersion';
     import toHumanSize from '$lib/humanSize';
     import localforage from '$lib/storage';
     interface Song {
@@ -77,7 +78,7 @@
         </ul>
     </div>
     <p>
-        AquaVox 1.12.4 · 早期公开预览 · 源代码参见
+        AquaVox {getVersion()} · 早期公开预览 · 源代码参见
         <a href="https://github.com/alikia2x/aquavox">GitHub</a>
     </p>
     <a href="/import">导入音乐</a> <br />

@@ -19,5 +19,6 @@ interface MusicMetadata {
     views: number | null;
     publishTime: string | null;
     updateTime: string | null;
+    netEaseID: number | null;
     lyric: string | null;
 }

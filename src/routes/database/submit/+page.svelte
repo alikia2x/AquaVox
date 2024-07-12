@@ -22,6 +22,7 @@
         views: null,
         publishTime: null,
         updateTime: getCurrentFormattedDateTime(),
+        netEaseID: null,
         lyric: null
     };
     let editingData: string = JSON.stringify(templateSongData, null, 8);
