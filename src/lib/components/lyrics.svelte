@@ -4,10 +4,13 @@
     import progressBarRaw from '$lib/state/progressBarRaw';
     import type { LrcJsonData } from 'lrc-parser-ts';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
+
+    // Component input properties
     export let lyrics: string[];
     export let originalLyrics: LrcJsonData;
     export let progress: number;
 
+    // Local state and variables
     let getLyricIndex: Function;
     const debugMode = false;
     let currentLyricIndex = -1;
@@ -21,11 +24,13 @@
     let scrolling = false;
     let scriptScrolling = false;
 
+    // References to lyric elements
     let refs: HTMLParagraphElement[] = [];
     let _refs: any[] = [];
     $: refs = _refs.filter(Boolean);
     $: getLyricIndex = createLyricsSearcher(originalLyrics);
 
+    // Helper function to get CSS class for a lyric based on its index and progress
     function getClass(lyricIndex: number, progress: number) {
         if (!originalLyrics.scripts) return 'previous-lyric';
         if (currentLyricIndex === lyricIndex) return 'current-lyric';
@@ -33,7 +38,7 @@
         else return 'previous-lyric';
     }
 
-    // scroll to correspoding lyric while adjusting progress
+    // Scroll to corresponding lyric while adjusting progress
     $: {
         if ($userAdjustingProgress == true) {
             const currentLyric = refs[getLyricIndex(progress)];
@@ -41,14 +46,15 @@
         }
     }
 
+    // Update the current lyric and apply blur effect based on the progress
     $: {
         (() => {
-            if (lyricsContainer === undefined || originalLyrics.scripts === undefined) {
-                return;
-            }
+            if (!lyricsContainer || !originalLyrics.scripts) return;
+
             const scripts = originalLyrics.scripts;
             currentPositionIndex = getLyricIndex(progress);
             const cl = scripts[currentPositionIndex];
+
             if (cl.start <= progress && progress <= cl.end) {
                 currentLyricIndex = currentPositionIndex;
                 nextUpdate = cl.end;
@@ -56,10 +62,10 @@
                 currentLyricIndex = -1;
                 nextUpdate = cl.start;
             }
+
             const currentLyric = refs[currentPositionIndex];
-            if ($userAdjustingProgress === true || scrolling || currentLyric.getBoundingClientRect().top < 0) {
-                return;
-            }
+            if ($userAdjustingProgress || scrolling || currentLyric.getBoundingClientRect().top < 0) return;
+
             for (let i = 0; i < scripts.length; i++) {
                 const offset = Math.abs(i - currentPositionIndex);
                 const blurRadius = Math.min(offset * 1.5, 16);
@@ -70,10 +76,12 @@
         })();
     }
 
+    // Utility function to create a sleep/delay
     function sleep(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
+    // Function to move the lyrics up smoothly
     async function moveToNextLine(h: number) {
         let pos = currentPositionIndex + 2;
         for (let i = currentPositionIndex + 2; i < refs.length; i++) {
@@ -85,7 +93,7 @@
             await sleep(75);
             if (refs[i - 2].getBoundingClientRect().top > lyricsContainer.getBoundingClientRect().height) break;
         }
-        // 特判，鬼知道为什么
+
         if (refs.length - pos < 3) {
             for (let i = pos; i < refs.length; i++) {
                 const lyric = refs[i];
@@ -99,8 +107,8 @@
             for (let i = pos; i < refs.length; i++) {
                 refs[i].style.transition =
                     'transform 0s, filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                const h = refs[i].getBoundingClientRect().height;
-                refs[i].style.transform = `translateY(${-h}px)`;
+                const height = refs[i].getBoundingClientRect().height;
+                refs[i].style.transform = `translateY(${-height}px)`;
             }
         }
 
@@ -119,6 +127,7 @@
         }, 500);
     }
 
+    // Scroll the lyrics container to the given lyric
     async function scrollToLyric(currentLyric: HTMLParagraphElement) {
         if (!originalLyrics || !originalLyrics.scripts || !lyricsContainer) return;
         scriptScrolling = true;
@@ -128,6 +137,7 @@
         }, 500);
     }
 
+    // Handle user adjusting progress state changes
     userAdjustingProgress.subscribe((v) => {
         if (!originalLyrics) return;
         const scripts = originalLyrics.scripts;
@@ -147,10 +157,9 @@
         }
     });
 
-    // progressBarRaw is used to detect progress changes at system-level (not in AquaVox)
+    // Handle progress changes at system level
     progressBarRaw.subscribe((progress: number) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
-            // prevent calling too frequent
             if (Math.abs(localProgress - progress) > 0.6) {
                 const currentLyric = refs[getLyricIndex(progress)];
                 scrollToLyric(currentLyric);
@@ -159,13 +168,14 @@
         }
     });
 
-    // progressBarSlideValue is to detect progress bar sliding event
+    // Handle progress bar sliding events
     progressBarSlideValue.subscribe((_) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
             lastAdjustProgress = currentPositionIndex;
         }
     });
 
+    // Handle scroll events in the lyrics container
     function scrollHandler() {
         scrolling = !scriptScrolling;
         if (scrolling && originalLyrics.scripts) {
@@ -183,6 +193,7 @@
         }, 5500);
     }
 
+    // Update lyrics position based on progress
     $: {
         (() => {
             if ($userAdjustingProgress) {
@@ -190,22 +201,18 @@
                 return;
             }
 
-            if (nextUpdate - progress >= 0.05) {
-                return;
-            }
+            if (nextUpdate - progress >= 0.05) return;
             if (
                 currentPositionIndex < 0 ||
                 currentPositionIndex === currentAnimationIndex ||
                 currentPositionIndex === lastAdjustProgress ||
                 scrolling
-            ) {
+            )
                 return;
-            }
+
             const currentLyric = refs[currentPositionIndex];
 
-            if (originalLyrics.scripts && currentLyric.getBoundingClientRect().top < 0) {
-                return;
-            }
+            if (originalLyrics.scripts && currentLyric.getBoundingClientRect().top < 0) return;
 
             const offsetHeight =
                 refs[currentPositionIndex].getBoundingClientRect().height +
@@ -219,7 +226,7 @@
             for (let i = currentPositionIndex - 1; i >= 0; i--) {
                 refs[i].style.transition =
                     'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                const h = refs[i].getBoundingClientRect().height;
+                const height = refs[i].getBoundingClientRect().height;
                 refs[i].style.transform = `translateY(${-offsetHeight}px)`;
             }
             if (currentPositionIndex + 1 < refs.length) {
