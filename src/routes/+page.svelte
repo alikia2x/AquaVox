@@ -77,7 +77,7 @@
         </ul>
     </div>
     <p>
-        AquaVox 1.10.1 · 早期公开预览 · 源代码参见
+        AquaVox 1.12.4 · 早期公开预览 · 源代码参见
         <a href="https://github.com/alikia2x/aquavox">GitHub</a>
     </p>
     <a href="/import">导入音乐</a> <br />

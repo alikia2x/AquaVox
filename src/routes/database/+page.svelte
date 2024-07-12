@@ -72,13 +72,13 @@
                         >
                             {song.singer.join(', ')}
                         </span>
-                        <div class="absolute right-2 bottom-2 text-right">
+                        <div class="absolute right-2 bottom-2 text-right text-white" style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">
                             {#if song.duration}
-                                <span style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">{formatDuration(song.duration)}</span>
+                                <span>{formatDuration(song.duration)}</span>
                             {/if}
                             <br />
                             {#if song.views}
-                                <span style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">{formatViews(song.views)}播放</span>
+                                <span>{formatViews(song.views)}播放</span>
                             {/if}
                         </div>
                     </div>

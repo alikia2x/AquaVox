@@ -17,6 +17,9 @@
     let nextUpdate = -1;
     let lastAdjustProgress = 0;
     let localProgress = 0;
+    let lastScroll = 0;
+    let scrolling = false;
+    let scriptScrolling = false;
 
     let refs: HTMLParagraphElement[] = [];
     let _refs: any[] = [];
@@ -30,8 +33,19 @@
         else return 'previous-lyric';
     }
 
+    // scroll to correspoding lyric while adjusting progress
     $: {
-        if (lyricsContainer && originalLyrics && originalLyrics.scripts) {
+        if ($userAdjustingProgress == true) {
+            const currentLyric = refs[getLyricIndex(progress)];
+            scrollToLyric(currentLyric);
+        }
+    }
+
+    $: {
+        (() => {
+            if (lyricsContainer === undefined || originalLyrics.scripts === undefined) {
+                return;
+            }
             const scripts = originalLyrics.scripts;
             currentPositionIndex = getLyricIndex(progress);
             const cl = scripts[currentPositionIndex];
@@ -42,23 +56,25 @@
                 currentLyricIndex = -1;
                 nextUpdate = cl.start;
             }
-            if ($userAdjustingProgress === false) {
-                for (let i = 0; i < scripts.length; i++) {
-                    const offset = Math.abs(i - currentPositionIndex);
-                    const blurRadius = Math.min(offset * 1.5, 16);
-                    if (refs[i]) {
-                        refs[i].style.filter = `blur(${blurRadius}px)`;
-                    }
+            const currentLyric = refs[currentPositionIndex];
+            if ($userAdjustingProgress === true || scrolling || currentLyric.getBoundingClientRect().top < 0) {
+                return;
+            }
+            for (let i = 0; i < scripts.length; i++) {
+                const offset = Math.abs(i - currentPositionIndex);
+                const blurRadius = Math.min(offset * 1.5, 16);
+                if (refs[i]) {
+                    refs[i].style.filter = `blur(${blurRadius}px)`;
                 }
             }
-        }
+        })();
     }
 
     function sleep(ms: number) {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    async function a(h: number) {
+    async function moveToNextLine(h: number) {
         let pos = currentPositionIndex + 2;
         for (let i = currentPositionIndex + 2; i < refs.length; i++) {
             const lyric = refs[i];
@@ -96,12 +112,20 @@
         for (let i = 0; i < refs.length; i++) {
             refs[i].style.transform = `translateY(0px)`;
         }
+        scriptScrolling = true;
         lyricsContainer.scrollTop += h;
+        setTimeout(() => {
+            scriptScrolling = false;
+        }, 500);
     }
 
-    async function b(currentLyric: HTMLParagraphElement) {
+    async function scrollToLyric(currentLyric: HTMLParagraphElement) {
         if (!originalLyrics || !originalLyrics.scripts || !lyricsContainer) return;
+        scriptScrolling = true;
         lyricsContainer.scrollTop += currentLyric.getBoundingClientRect().top - 144;
+        setTimeout(() => {
+            scriptScrolling = false;
+        }, 500);
     }
 
     userAdjustingProgress.subscribe((v) => {
@@ -126,9 +150,10 @@
     // progressBarRaw is used to detect progress changes at system-level (not in AquaVox)
     progressBarRaw.subscribe((progress: number) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
+            // prevent calling too frequent
             if (Math.abs(localProgress - progress) > 0.6) {
                 const currentLyric = refs[getLyricIndex(progress)];
-                b(currentLyric);
+                scrollToLyric(currentLyric);
             }
             localProgress = progress;
         }
@@ -141,42 +166,71 @@
         }
     });
 
-    $: {
-        if ($userAdjustingProgress) {
-            nextUpdate = progress;
-        } else {
-            if (nextUpdate - progress < 0.05) {
-                if (
-                    currentPositionIndex >= 0 &&
-                    currentPositionIndex !== currentAnimationIndex &&
-                    currentPositionIndex !== lastAdjustProgress
-                ) {
-                    const offsetHeight =
-                        refs[currentPositionIndex].getBoundingClientRect().height +
-                        refs[currentPositionIndex].getBoundingClientRect().top -
-                        144;
-                    const currentLyric = refs[currentPositionIndex];
-                    currentLyric.style.transition =
-                        'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                    currentLyric.style.transform = `translateY(${-offsetHeight}px)`;
-
-                    for (let i = currentPositionIndex - 1; i >= 0; i--) {
-                        refs[i].style.transition =
-                            'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                        const h = refs[i].getBoundingClientRect().height;
-                        refs[i].style.transform = `translateY(${-offsetHeight}px)`;
-                    }
-                    if (currentPositionIndex + 1 < refs.length) {
-                        const nextLyric = refs[currentPositionIndex + 1];
-                        nextLyric.style.transition =
-                            'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                        nextLyric.style.transform = `translateY(${-offsetHeight}px)`;
-                        a(offsetHeight);
-                    }
-                    currentAnimationIndex = currentPositionIndex;
+    function scrollHandler() {
+        scrolling = !scriptScrolling;
+        if (scrolling && originalLyrics.scripts) {
+            lastScroll = new Date().getTime();
+            for (let i = 0; i < originalLyrics.scripts.length; i++) {
+                if (refs[i]) {
+                    refs[i].style.filter = 'blur(0px)';
                 }
             }
         }
+        setTimeout(() => {
+            if (new Date().getTime() - lastScroll > 5000) {
+                scrolling = false;
+            }
+        }, 5500);
+    }
+
+    $: {
+        (() => {
+            if ($userAdjustingProgress) {
+                nextUpdate = progress;
+                return;
+            }
+
+            if (nextUpdate - progress >= 0.05) {
+                return;
+            }
+            if (
+                currentPositionIndex < 0 ||
+                currentPositionIndex === currentAnimationIndex ||
+                currentPositionIndex === lastAdjustProgress ||
+                scrolling
+            ) {
+                return;
+            }
+            const currentLyric = refs[currentPositionIndex];
+
+            if (originalLyrics.scripts && currentLyric.getBoundingClientRect().top < 0) {
+                return;
+            }
+
+            const offsetHeight =
+                refs[currentPositionIndex].getBoundingClientRect().height +
+                refs[currentPositionIndex].getBoundingClientRect().top -
+                144;
+
+            currentLyric.style.transition =
+                'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+            currentLyric.style.transform = `translateY(${-offsetHeight}px)`;
+
+            for (let i = currentPositionIndex - 1; i >= 0; i--) {
+                refs[i].style.transition =
+                    'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+                const h = refs[i].getBoundingClientRect().height;
+                refs[i].style.transform = `translateY(${-offsetHeight}px)`;
+            }
+            if (currentPositionIndex + 1 < refs.length) {
+                const nextLyric = refs[currentPositionIndex + 1];
+                nextLyric.style.transition =
+                    'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+                nextLyric.style.transform = `translateY(${-offsetHeight}px)`;
+                moveToNextLine(offsetHeight);
+            }
+            currentAnimationIndex = currentPositionIndex;
+        })();
     }
 </script>
 
@@ -185,6 +239,7 @@
         class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
         text-left no-scrollbar overflow-y-auto z-[1] pt-16 lyrics"
         bind:this={lyricsContainer}
+        on:scroll={scrollHandler}
     >
         {#if debugMode}
             <p class="fixed top-6 right-20 font-mono text-sm">
