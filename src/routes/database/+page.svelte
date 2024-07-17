@@ -66,7 +66,7 @@
                         >
                         <br />
                         <span
-                            class="relative inline-block whitespace-nowrap text-white w-40
+                            class="relative inline-block whitespace-nowrap text-white w-28
                             overflow-hidden text-ellipsis"
                             style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);"
                         >
