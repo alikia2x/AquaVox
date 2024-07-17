@@ -70,7 +70,7 @@
                             overflow-hidden text-ellipsis"
                             style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);"
                         >
-                            {song.singer.join(', ')}
+                            {song.producer}
                         </span>
                         <div class="absolute right-2 bottom-2 text-right text-white" style="text-shadow: 0px 0px 4px rgba(65, 65, 65, .6);">
                             {#if song.duration}
