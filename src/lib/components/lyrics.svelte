@@ -68,7 +68,7 @@
 
             for (let i = 0; i < scripts.length; i++) {
                 const offset = Math.abs(i - currentPositionIndex);
-                const blurRadius = Math.min(offset * 1.5, 16);
+                const blurRadius = Math.min(offset * 1, 16);
                 if (refs[i]) {
                     refs[i].style.filter = `blur(${blurRadius}px)`;
                 }
@@ -278,10 +278,10 @@
         );
     }
     .no-scrollbar {
-        scrollbar-width: 10px;
+        scrollbar-width: none;
     }
     .no-scrollbar::-webkit-scrollbar {
-        width: 10px;
+        width: 0px;
     }
     .current-lyric {
         position: relative;
