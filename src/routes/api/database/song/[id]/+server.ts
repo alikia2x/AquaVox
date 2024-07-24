@@ -1,10 +1,16 @@
+import { safePath } from '$lib/server/safePath';
 import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
 import path from 'path';
 
 export async function GET({ params }) {
-    const filePath = path.join('./data/song', `${params.id}.json`);
+    const filePath = safePath(`${params.id}.json`, { base: './data/song' });
+    if (!filePath) {
+        return error(404, {
+            message: "No correspoding song."
+        });
+    }
     let data;
     try { data = fs.readFileSync(filePath); } catch (e) {
         return error(404, {
