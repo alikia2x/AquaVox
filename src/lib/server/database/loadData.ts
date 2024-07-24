@@ -1,5 +1,4 @@
 import fs from 'fs';
-import path from 'path';
 import { globalMemoryStorage, songData, songNameCache } from '$lib/server/cache.js';
 import { getDirectoryHash } from '../dirHash';
 import { safePath } from '../safePath';

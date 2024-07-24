@@ -1,7 +1,6 @@
 /** @type {import('./$types').PageLoad} */
 import { safePath } from '$lib/server/safePath';
 import fs from 'fs';
-import path from 'path';
 
 
 export function load({ params }) {

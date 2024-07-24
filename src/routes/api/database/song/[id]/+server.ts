@@ -2,7 +2,6 @@ import { safePath } from '$lib/server/safePath';
 import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
-import path from 'path';
 
 export async function GET({ params }) {
     const filePath = safePath(`${params.id}.json`, { base: './data/song' });

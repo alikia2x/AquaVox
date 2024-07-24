@@ -1,4 +1,3 @@
-import path from 'path';
 import { describe, it, expect } from 'vitest';
 import formatDuration from '$lib/formatDuration';
 import { safePath } from '$lib/server/safePath';
