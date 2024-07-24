@@ -8,8 +8,6 @@ export function safePath(pathIn: string, options: { base: string, noSubDir?: boo
     pathIn = path.join(base, pathIn);
     const normBase = path.normalize(base);
     const normPath = path.normalize(pathIn);
-    console.log(normBase);
-    console.log(normPath);
 
     if (normPath !== normBase && normPath.startsWith(normBase)) {
         if (options.noSubDir) {
