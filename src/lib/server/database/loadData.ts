@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { globalMemoryStorage, songData, songNameCache } from '$lib/server/cache.js';
 import { getDirectoryHash } from '../dirHash';
 
@@ -25,7 +26,7 @@ export async function loadData() {
     songNameCache.flushAll();
     for (const songID of songList) {
         try {
-            const fileContentString = fs.readFileSync(dataPath + songID + '.json').toString();
+            const fileContentString = fs.readFileSync(path.join(dataPath, songID + '.json')).toString();
             const data = JSON.parse(fileContentString);
             songData.set(songID, data);
             const metadata: MusicMetadata = data;

@@ -12,7 +12,7 @@ export function getDirectoryHash(dir: string): string {
 
         files.forEach(file => {
             const filePath = path.join(currentDir, file);
-            const stats = fs.statSync(filePath);
+            const stats = fs.lstatSync(filePath);
 
             if (stats.isDirectory()) {
                 traverseDirectory(filePath);
@@ -30,7 +30,7 @@ export function getDirectoryHash(dir: string): string {
 
     // Create hash from file details
     const hash = crypto.createHash('sha256');
-    hash.update(fileDetails.join('|'));
+    hash.update(fileDetails.join('\x00'));
 
     return hash.digest('hex');
 }

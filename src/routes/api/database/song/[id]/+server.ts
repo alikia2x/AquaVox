@@ -1,30 +1,37 @@
 import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
+import path from 'path';
 
 export async function GET({ params }) {
-    const filePath = `./data/song/${params.id}.json`;
-    if (!fs.existsSync(filePath)) {
+    const filePath = path.join('./data/song', `${params.id}.json`);
+    let data;
+    try { data = fs.readFileSync(filePath); } catch (e) {
         return error(404, {
             message: "No correspoding song."
-        })
+        });
     }
-    const data = fs.readFileSync(filePath);
-	return json(JSON.parse(data.toString()));
+    return json(JSON.parse(data.toString()));
 }
 
 export async function POST({ params, request }) {
     const timeStamp = new Date().getTime();
-    if (!fs.existsSync("./data/pending/")) {
-        fs.mkdirSync("./data/pending");
+    try {
+        if (!fs.existsSync("./data/pending/")) {
+            fs.mkdirSync("./data/pending", { mode: 0o755 });
+        }
+        const filePath = `./data/pending/${params.id}-${timeStamp}.json`;
+        const data: MusicMetadata = await request.json();
+        data.updateTime = getCurrentFormattedDateTime();
+        fs.writeFileSync(filePath, JSON.stringify(data, null, 4), { mode: 0o644 });
+        return json({
+            "message": "successfully created"
+        }, {
+            status: 201
+        });
+    } catch (e) {
+        return error(500, {
+            message: "Internal server error."
+        });
     }
-    const filePath = `./data/pending/${params.id}-${timeStamp}.json`;
-    const data: MusicMetadata = await request.json();
-    data.updateTime = getCurrentFormattedDateTime();
-    fs.writeFileSync(filePath, JSON.stringify(data, null, 4));
-    return json({
-        "message": "successfully created"
-    }, {
-        status: 201
-    });
 }
