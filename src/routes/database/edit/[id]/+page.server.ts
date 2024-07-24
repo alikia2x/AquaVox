@@ -1,8 +1,8 @@
-/** @type {import('./$types').PageLoad} */
+import type { PageServerLoad } from './$types';
 import fs from 'fs';
 
 
-export function load({ params }) {
+export const load: PageServerLoad = ({ params }) => {
     const filePath = `./data/song/${params.id}.json`;
     if (!fs.existsSync(filePath)) {
         return {
