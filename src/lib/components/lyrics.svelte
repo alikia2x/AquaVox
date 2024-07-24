@@ -11,6 +11,7 @@
     export let originalLyrics: LrcJsonData;
     export let progress: number;
 
+    // Local state and variables
     let getLyricIndex: Function;
     let debugMode = false;
     if (localStorage.getItem('debugMode') == null) {
@@ -31,11 +32,13 @@
 
     let currentLyricTopMargin = 288;
 
+    // References to lyric elements
     let refs: HTMLParagraphElement[] = [];
     let _refs: any[] = [];
     $: refs = _refs.filter(Boolean);
     $: getLyricIndex = createLyricsSearcher(originalLyrics);
 
+    // Helper function to get CSS class for a lyric based on its index and progress
     function getClass(lyricIndex: number, progress: number) {
         if (!originalLyrics.scripts) return 'previous-lyric';
         if (currentLyricIndex === lyricIndex) return 'current-lyric';
@@ -76,8 +79,8 @@
             for (let i = processingLineIndex; i < refs.length; i++) {
                 refs[i].style.transition =
                     'transform 0s, filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
-                const h = refs[i].getBoundingClientRect().height;
-                refs[i].style.transform = `translateY(${-h}px)`;
+                const height = refs[i].getBoundingClientRect().height;
+                refs[i].style.transform = `translateY(${-height}px)`;
             }
         }
 
@@ -101,7 +104,8 @@
         scriptScrolling = false;
     }
 
-    async function b(currentLyric: HTMLParagraphElement) {
+    // Scroll the lyrics container to the given lyric
+    async function scrollToLyric(currentLyric: HTMLParagraphElement) {
         if (!originalLyrics || !originalLyrics.scripts || !lyricsContainer) return;
         scriptScrolling = true;
         lyricsContainer.scrollTop += currentLyric.getBoundingClientRect().top - currentLyricTopMargin;
@@ -133,18 +137,18 @@
         }
     });
 
-    // progressBarRaw is used to detect progress changes at system-level (not in AquaVox)
+    // Handle progress changes at system level
     progressBarRaw.subscribe((progress: number) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
             if (Math.abs(localProgress - progress) > 0.6) {
                 const currentLyric = refs[getLyricIndex(progress)];
-                b(currentLyric);
+                scrollToLyric(currentLyric);
             }
             localProgress = progress;
         }
     });
 
-    // progressBarSlideValue is to detect progress bar sliding event
+    // Handle progress bar sliding events
     progressBarSlideValue.subscribe((_) => {
         if ($userAdjustingProgress === false && getLyricIndex) {
             lastAdjustProgress = currentPositionIndex;
@@ -325,7 +329,7 @@
     }
 
     .no-scrollbar {
-        scrollbar-width: 10px;
+        scrollbar-width: none;
     }
 
     .no-scrollbar::-webkit-scrollbar {
