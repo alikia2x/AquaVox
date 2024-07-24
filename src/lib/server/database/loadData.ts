@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { globalMemoryStorage, songData, songNameCache } from '$lib/server/cache.js';
 import { getDirectoryHash } from '../dirHash';
+import { safePath } from '../safePath';
 
 const dataPath = './data/song/';
 
@@ -25,7 +26,12 @@ export async function loadData() {
     songNameCache.flushAll();
     for (const songID of songList) {
         try {
-            const fileContentString = fs.readFileSync(dataPath + songID + '.json').toString();
+            const normPath = safePath(songID + '.json', { base: dataPath });
+            if (!normPath) {
+                console.error(`[load-song-data] Invalid path for song ID ${songID}`);
+                continue;
+            }
+            const fileContentString = fs.readFileSync(normPath).toString();
             const data = JSON.parse(fileContentString);
             songData.set(songID, data);
             const metadata: MusicMetadata = data;
