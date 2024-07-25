@@ -86,7 +86,7 @@ const alpha = alt_sc(
 const alphaStr = apply(rep(alpha), (r) => r.join(''));
 const spaces = rep_sc(str(' '));
 
-const unicodeStr = rep_sc(tok('char'));
+const unicodeStr = rep(tok('char'));
 
 function trimmed<K, T>(p: Parser<K, Token<T>[]>): Parser<K, Token<T>[]> {
     return apply(p, (r) => {
@@ -132,6 +132,10 @@ const lrcTag = apply(
     })
 );
 
+function joinTokens<T>(tokens: Token<T>[]) {
+    return tokens.map((t) => t.text).join('');
+}
+
 function tokenParserToText<K, T>(p: Parser<K, Token<T>> | Parser<K, Token<T>[]>): Parser<K, string> {
     return apply(p, (r: Token<T> | Token<T>[]) => {
         if (Array.isArray(r)) {
@@ -141,13 +145,9 @@ function tokenParserToText<K, T>(p: Parser<K, Token<T>> | Parser<K, Token<T>[]>)
     });
 }
 
-function joinTokens<T>(tokens: Token<T>[]) {
-    return tokens.map((t) => t.text).join('');
-}
-
 function lrcLine(
     wordDiv = ''
-): Parser<unknown, ['script_item', ScriptItem] | ['lrc_tag', IDTag] | ['comment', string] | ['empty', string]> {
+): Parser<unknown, ['script_item', ScriptItem] | ['lrc_tag', IDTag] | ['comment', string] | ['empty', null]> {
     return alt_sc(
         apply(seq(squareTS, rep_sc(seq(opt_sc(angleTS), trimmed(rep_sc(anythingTyped(['char', '[', ']'])))))), (r) => {
             const start = r[0];
@@ -174,7 +174,8 @@ function lrcLine(
             return ['script_item', { start, text, words } as any as ScriptItem]; // TODO: Complete this
         }),
         apply(lrcTag, (r) => ['lrc_tag', r as IDTag]),
-        apply(seq(spaces, str('#'), rep_sc(unicodeStr)), (cmt) => ['comment', cmt[2].join('')] as const)
+        apply(seq(spaces, str('#'), unicodeStr), (cmt) => ['comment', cmt[2].join('')] as const),
+        apply(spaces, (_) => ['empty', null] as const)
     );
 }
 
