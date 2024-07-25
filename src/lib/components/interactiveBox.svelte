@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
+    import truncate from '$lib/truncate';
 
     export let name: string;
     export let singer: string = '';
@@ -47,10 +48,6 @@
     function progressBarOnClick(e: MouseEvent) {
         adjustProgress(e.offsetX / progressBar.getBoundingClientRect().width);
         progressBarSlideValue.set((e.offsetX / progressBar.getBoundingClientRect().width) * duration);
-    }
-
-    function truncate(value: number, min: number, max: number) {
-        return Math.min(Math.max(value, min), max);
     }
 
     function progressBarMouseUp(offsetX: number) {

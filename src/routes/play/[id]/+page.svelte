@@ -11,6 +11,8 @@
     import lrcParser, { type LrcJsonData } from 'lrc-parser-ts';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
+    import { onMount } from 'svelte';
+    import progressBarRaw from '$lib/state/progressBarRaw';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement;
@@ -150,19 +152,11 @@
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
-            if (
-                audioPlayer !== null &&
-                audioPlayer.currentTime !== undefined
-            ) {
-                if ($userAdjustingProgress === false)
-                    currentProgress = audioPlayer.currentTime;
-                progressBarRaw.set(audioPlayer.currentTime);
-            }
+            if ($userAdjustingProgress === false)
+                currentProgress = audioPlayer.currentTime;
+            progressBarRaw.set(audioPlayer.currentTime);
         }, 50);
     }
-
-    import { onMount } from 'svelte';
-    import progressBarRaw from '$lib/state/progressBarRaw';
 
 	onMount(() => {
 		audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
@@ -175,13 +169,7 @@
         }
     }
 
-    $: {
-        if (originalLyrics) {
-            hasLyrics = true;
-        } else {
-            hasLyrics = false;
-        }
-    }
+    $: hasLyrics = !!originalLyrics;
 
     readDB();
 </script>
