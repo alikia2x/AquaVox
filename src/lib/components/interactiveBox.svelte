@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
+    import truncate from '$lib/truncate';
 
     export let name: string;
     export let singer: string = '';
@@ -35,11 +36,11 @@
     }
 
     function volumeBarChangeTouch(e: TouchEvent) {
-        const value = turncate(
-                            e.touches[0].clientX - volumeBar.getBoundingClientRect().x,
-                            0,
-                            volumeBar.getBoundingClientRect().width
-                        ) / volumeBar.getBoundingClientRect().width;
+        const value = truncate(
+            e.touches[0].clientX - volumeBar.getBoundingClientRect().x,
+            0,
+            volumeBar.getBoundingClientRect().width
+        ) / volumeBar.getBoundingClientRect().width;
         adjustVolume(value);
         localStorage.setItem('volume', value.toString());
     }
@@ -49,8 +50,8 @@
         progressBarSlideValue.set((e.offsetX / progressBar.getBoundingClientRect().width) * duration);
     }
 
-    function turncate(value: number, min: number, max: number) {
-        return Math.min(Math.max(value, min), max);
+    function progressBarMouseUp(offsetX: number) {
+        adjustDisplayProgress(offsetX / progressBar.getBoundingClientRect().width);
     }
 
     onMount(() => {
@@ -85,7 +86,7 @@
 >
     {#if !showInfoTop}
         <div class="song-info">
-            <div class="song-info-top {isInfoTopOverflowing ? 'animate' : ''}" bind:this={songInfoTopContainer}>
+            <div class="song-info-regular {isInfoTopOverflowing ? 'animate' : ''}" bind:this={songInfoTopContainer}>
                 <span
                     class="song-name text-shadow {isInfoTopOverflowing ? 'animate' : ''}"
                     bind:this={songInfoTopContent}>{name}</span
@@ -100,51 +101,34 @@
             {formatDuration(progress)}
         </div>
         <div
-            class="progress-bar shadow-md"
-            on:click={(e) => progressBarOnClick(e)}
+            aria-valuemax={duration}
+            aria-valuemin="0"
+            aria-valuenow={progress}
             bind:this={progressBar}
+            class="progress-bar shadow-md"
+            on:keydown
+            on:keyup
             on:mousedown={() => {
                 userAdjustingProgress.set(true);
             }}
             on:mousemove={(e) => {
                 if ($userAdjustingProgress) {
+                    console.log(e.offsetX )
                     adjustDisplayProgress(e.offsetX / progressBar.getBoundingClientRect().width);
                 }
             }}
-            on:touchstart={(e) => {
-                if (e.cancelable) {
-                    e.preventDefault();
-                }
-                userAdjustingProgress.set(true);
-            }}
-            on:touchmove={(e) => {
-                e.preventDefault();
-                userAdjustingProgress.set(true);
-                if ($userAdjustingProgress) {
-                    lastTouchProgress =
-                        turncate(
-                            e.touches[0].clientX - progressBar.getBoundingClientRect().x,
-                            0,
-                            progressBar.getBoundingClientRect().width
-                        ) / progressBar.getBoundingClientRect().width;
-                    adjustDisplayProgress(lastTouchProgress);
-                }
-            }}
-            on:touchend={(e) => {
-                e.preventDefault();
-                userAdjustingProgress.set(false);
-                adjustProgress(lastTouchProgress);
-            }}
-            on:mouseup={() => {
-                userAdjustingProgress.set(false);
+            on:mouseup={(e) => {
+                const offsetX = e.offsetX;
+                progressBarOnClick(e);
+                // Q: why it needs delay?
+                // A: I do not know.
+                setTimeout(()=> {
+                    userAdjustingProgress.set(false);
+                    progressBarMouseUp(offsetX);
+                }, 50);
             }}
             role="slider"
-            aria-valuemin="0"
-            aria-valuemax={duration}
-            aria-valuenow={progress}
             tabindex="0"
-            on:keydown
-            on:keyup
         >
             <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
         </div>
@@ -152,26 +136,49 @@
         <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
     </div>
     <div class="controls top-32 flex h-16 overflow-hidden items-center justify-center">
-        <button style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn previous">
-            <img class="control-img switch-song-img" src="/previous.svg" alt="上一曲" />
+        <button class="control-btn previous" style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );">
+            <img alt="上一曲" class="control-img switch-song-img" src="/previous.svg" />
         </button>
         <button
-            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
             class="control-btn play-btn"
-            on:click={() => clickPlay()}
+            on:click={(e) => clickPlay()}
+            on:focus={null}
+            on:mouseleave={(e) => {
+                e.currentTarget.style.backgroundColor = '';
+            }}
+            on:mouseover={(e) => {
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+            }}
+            on:touchend={(e) => {
+                e.preventDefault();
+                e.currentTarget.style.backgroundColor = '';
+                e.currentTarget.style.scale = '1';
+                clickPlay();
+            }}
+            on:touchstart={(e) => {
+                e.preventDefault();
+                e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+                e.currentTarget.style.scale = '0.8';
+            }}
+            style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );"
         >
-            <img class="control-img" src={paused ? '/play.svg' : '/pause.svg'} alt="暂停或播放" />
+            <img alt={paused ? '播放' : '暂停'} class="control-img" src={paused ? '/play.svg' : '/pause.svg'} />
         </button>
-        <button style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );" class="control-btn next">
-            <img class="control-img switch-song-img" src="/next.svg" alt="下一曲" />
+        <button class="control-btn next" style="filter: drop-shadow( 0 4px 8px rgba(0, 0, 0, 0.12) );">
+            <img alt="下一曲" class="control-img switch-song-img" src="/next.svg" />
         </button>
     </div>
     <div class="relative top-52 h-6 flex">
-        <img class="scale-75" src="/volumeDown.svg" alt="最小音量" />
+        <img alt="最小音量" class="scale-75" src="/volumeDown.svg" />
         <div
+            aria-valuemax="1"
+            aria-valuemin="0"
+            aria-valuenow={volume}
+            bind:this={volumeBar}
             class="progress-bar shadow-md !top-1/2 !translate-y-[-50%]"
             on:click={(e) => volumeBarOnChange(e)}
-            bind:this={volumeBar}
+            on:keydown
+            on:keyup
             on:mousedown={() => {
                 userAdjustingVolume = true;
             }}
@@ -180,11 +187,12 @@
                     volumeBarOnChange(e);
                 }
             }}
-            on:touchstart={(e) => {
-                if (e.cancelable) {
-                    e.preventDefault();
-                }
-                userAdjustingVolume = true;
+            on:mouseup={() => {
+                userAdjustingVolume = false;
+            }}
+            on:touchend={(e) => {
+                e.preventDefault();
+                userAdjustingVolume = false;
             }}
             on:touchmove={(e) => {
                 e.preventDefault();
@@ -193,24 +201,18 @@
                     volumeBarChangeTouch(e);
                 }
             }}
-            on:touchend={(e) => {
-                e.preventDefault();
-                userAdjustingVolume = false;
-            }}
-            on:mouseup={() => {
-                userAdjustingVolume = false;
+            on:touchstart={(e) => {
+                if (e.cancelable) {
+                    e.preventDefault();
+                }
+                userAdjustingVolume = true;
             }}
             role="slider"
-            aria-valuemin="0"
-            aria-valuemax="1"
-            aria-valuenow={volume}
             tabindex="0"
-            on:keydown
-            on:keyup
         >
             <div class="bar" style={`width: ${volume * 100}%;`}></div>
         </div>
-        <img class="scale-75" src="/volumeUp.svg" alt="最大音量" />
+        <img alt="最大音量" class="scale-75" src="/volumeUp.svg" />
     </div>
 </div>
 
@@ -221,6 +223,7 @@
         left: 50%;
         transform: translate(-50%, 0);
     }
+
     .control-btn {
         display: inline-block;
         height: 3.7rem;
@@ -228,11 +231,10 @@
         cursor: pointer;
         margin: 0 0.5rem;
         border-radius: 0.5rem;
-        transition: 0.1s;
+        transition: 0.45s;
+        scale: 1;
     }
-    .control-btn:hover {
-        background-color: rgba(0, 0, 0, 0.1);
-    }
+
     .control-img {
         height: 2rem;
         width: 2rem;
@@ -240,6 +242,7 @@
         left: 50%;
         transform: translateX(-50%);
     }
+
     .switch-song-img {
         width: auto !important;
         height: 1.7rem !important;
@@ -256,19 +259,21 @@
         font-family: sans-serif;
         text-align: center;
     }
-    .song-info-top {
+
+    .song-info-regular {
         white-space: nowrap;
         overflow: hidden;
         position: relative;
+        height: 2.375rem;
     }
 
-    .song-info-top.animate {
+    .song-info-regular.animate {
         mask-image: linear-gradient(
-            90deg,
-            rgba(0, 0, 0, 0) 0%,
-            rgba(0, 0, 0, 1) 2rem,
-            rgba(0, 0, 0, 1) calc(100% - 5rem),
-            rgba(0, 0, 0, 0) 100%
+                90deg,
+                rgba(0, 0, 0, 0) 0%,
+                rgba(0, 0, 0, 1) 2rem,
+                rgba(0, 0, 0, 1) calc(100% - 5rem),
+                rgba(0, 0, 0, 0) 100%
         );
     }
 
@@ -283,12 +288,15 @@
         height: 2.5rem;
         display: inline-block;
     }
+
     .song-name.animate {
         animation: scroll 10s linear infinite;
     }
+
     .song-name::-webkit-scrollbar {
         display: none;
     }
+
     @keyframes scroll {
         0% {
             transform: translateX(100%);
@@ -300,10 +308,12 @@
             transform: translateX(-100%);
         }
     }
+
     .song-author {
         font-size: 1.2rem;
         color: rgba(255, 255, 255, 0.8);
     }
+
     .progress {
         position: absolute;
         width: 100%;
@@ -311,6 +321,7 @@
         transform: translate(-50%, 0);
         height: 2.4rem;
     }
+
     .progress-bar {
         -webkit-appearance: none;
         appearance: none;
@@ -325,9 +336,11 @@
         cursor: pointer;
         transition: 0.3s;
     }
+
     .progress-bar:hover {
         height: 0.7rem;
     }
+
     .bar {
         background-color: white;
         position: absolute;
@@ -351,10 +364,18 @@
         display: inline-block;
         top: 0.2rem;
     }
+
     .time-current {
         left: 0;
     }
+
     .time-total {
         right: 0;
+    }
+
+    @media (min-width: 768px) {
+        .control-btn {
+            transition: 0.1s
+        }
     }
 </style>

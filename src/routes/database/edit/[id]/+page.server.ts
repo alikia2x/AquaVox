@@ -1,9 +1,8 @@
-/** @type {import('./$types').PageLoad} */
-import { safePath } from '$lib/server/safePath';
 import fs from 'fs';
+import type { PageServerLoad } from './$types';
+import { safePath } from '$lib/server/safePath';
 
-
-export function load({ params }) {
+export const load: PageServerLoad = ({ params }) => {
     const filePath = safePath(`${params.id}.json`, { base: './data/song' });
     if (!filePath) {
         return {

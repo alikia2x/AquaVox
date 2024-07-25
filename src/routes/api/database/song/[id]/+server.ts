@@ -2,8 +2,9 @@ import { safePath } from '$lib/server/safePath';
 import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
+import type { RequestHandler } from './$types';
 
-export async function GET({ params }) {
+export const GET: RequestHandler = async ({ params }) => {
     const filePath = safePath(`${params.id}.json`, { base: './data/song' });
     if (!filePath) {
         return error(404, {
@@ -13,13 +14,13 @@ export async function GET({ params }) {
     let data;
     try { data = fs.readFileSync(filePath); } catch (e) {
         return error(404, {
-            message: "No correspoding song."
+            message: "No corresponding song."
         });
     }
     return json(JSON.parse(data.toString()));
 }
 
-export async function POST({ params, request }) {
+export const POST: RequestHandler = async ({ request, params }) => {
     const timeStamp = new Date().getTime();
     try {
         if (!fs.existsSync("./data/pending/")) {
