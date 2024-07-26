@@ -22,6 +22,7 @@ describe('LRC parser test', () => {
 
         expect(result.ti).toBe("Somebody to Love");
         expect(result.ar).toBe("Jefferson Airplane");
+        expect(result.scripts!!.length).toBe(3);
         expect(result.scripts!![0].text).toBe("When the truth is found to be lies");
         expect(result.scripts!![0].start).toBe(0);
         expect(result.scripts!![0].words!![1].beginIndex).toBe("[00:00.00] <00:00.04> When <00:00.16> the".indexOf("the"));
@@ -55,4 +56,14 @@ describe('LRC parser test', () => {
             expect(() => parseLRC(c, { strict: false })).not.toThrow();
         }
     })
+    it('Parses a legacy LRC', () => {
+        const result = parseLRC(test02Text, { wordDiv: ' ', strict: true, legacy: true });
+
+        expect(result.ti).toBe("Somebody to Love");
+        expect(result.ar).toBe("Jefferson Airplane");
+        expect(result.scripts!!.length).toBe(3);
+        expect(result.scripts!![1].text).toBe("<00:07.67> And <00:07.94> all <00:08.36> the <00:08.63> joy <00:10.28> within <00:10.53> you <00:13.09> dies");
+        expect(result.scripts!![1].start).toBe(6000 + 470);
+        result.scripts!!.forEach((s) => expect(s.words).not.toBeDefined());
+    });
 });

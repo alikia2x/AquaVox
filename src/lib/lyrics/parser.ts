@@ -146,10 +146,12 @@ function tokenParserToText<K, T>(p: Parser<K, Token<T>> | Parser<K, Token<T>[]>)
 }
 
 function lrcLine(
-    wordDiv = ''
+    wordDiv = ' ', legacy = false
 ): Parser<unknown, ['script_item', ScriptItem] | ['lrc_tag', IDTag] | ['comment', string] | ['empty', null]> {
     return alt_sc(
-        apply(seq(squareTS, rep_sc(seq(opt_sc(angleTS), trimmed(rep_sc(anythingTyped(['char', '[', ']'])))))), (r) => {
+        legacy ? apply(seq(squareTS, trimmed(rep_sc(anythingTyped(['char', '[', ']', '<', '>'])))), (r) =>
+            ['script_item', { start: r[0], text: joinTokens(r[1]) } as any as ScriptItem] // TODO: Complete this
+        ) : apply(seq(squareTS, rep_sc(seq(opt_sc(angleTS), trimmed(rep_sc(anythingTyped(['char', '[', ']'])))))), (r) => {
             const start = r[0];
 
             const text = r[1]
@@ -188,7 +190,7 @@ export function dumpToken<T>(t: Token<T> | undefined): string {
 
 export function parseLRC(
     input: string,
-    { wordDiv, strict }: { wordDiv?: string; strict?: boolean } = { wordDiv: ' ' }
+    { wordDiv, strict, legacy }: { wordDiv?: string; strict?: boolean; legacy?: boolean } = {}
 ): LrcJsonData {
     const tokenizer = buildLexer([
         [true, /^\[/gu, '['],
@@ -205,7 +207,7 @@ export function parseLRC(
 
     return lines
         .map((line) => {
-            const res = expectEOF(lrcLine(wordDiv).parse(line));
+            const res = expectEOF(lrcLine(wordDiv, legacy).parse(line));
             if (!res.successful) {
                 if (strict) {
                     throw new Error('Failed to parse full line: ' + dumpToken(line));
