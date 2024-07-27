@@ -170,7 +170,7 @@ function tokenParserToText<K, T>(p: Parser<K, Token<T>> | Parser<K, Token<T>[]>)
 }
 
 const singerIndicator = kleft(tok('char'), str(':'));
-const translateParser = kright(str('|'), unicodeStr);
+const translateParser = kright(tok('|'), unicodeStr);
 
 function lrcLine(
     wordDiv = ' ', legacy = false
@@ -181,7 +181,7 @@ function lrcLine(
         ) : apply(
             seq(
                 squareTS, 
-                opt_sc(singerIndicator), 
+                opt_sc(padded(singerIndicator)),
                 rep_sc(
                     seq(
                         opt_sc(angleTS), 
@@ -242,6 +242,7 @@ export function parseLRC(
         [true, /^\]/gu, ']'],
         [true, /^</gu, '<'],
         [true, /^>/gu, '>'],
+        [true, /^\|/gu, '|'],
         [true, /^./gu, 'char']
     ]);
 

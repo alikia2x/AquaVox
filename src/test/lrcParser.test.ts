@@ -32,8 +32,12 @@ describe('LRC parser test', () => {
     });
     it('Parses test-03.lrc', () => {
         const result = parseLRC(test03Text, { wordDiv: ' ', strict: true });
-        console.log(result.scripts);
-        expect(result.scripts!![5].translation).toBe("བྲོ་ར་འདི་ལ་བྲོ་ཅིག་འཁྲབ།");
+        expect(result.scripts!![5].text).toBe("བྲོ་ར་འདི་ལ་བྲོ་ཅིག་འཁྲབ།");
+        expect(result.scripts!![5].translation).toBe("在舞池里舞一舞");
+        expect(result.scripts!![6].text).toBe("祝祷转过千年 五色经幡飘飞");
+        expect(result.scripts!![6].singer).toBe("a");
+        expect(result.scripts!![11].singer).toBeUndefined();
+        expect(result.scripts!![11].translation).toBe("我们在此相聚");
     });
     it('Rejects some invalid LRCs', () => {
         const cases = [
