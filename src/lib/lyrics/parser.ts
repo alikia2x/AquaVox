@@ -4,24 +4,30 @@ import {
     buildLexer,
     expectEOF,
     fail,
+    kleft,
     kmid,
+    kright,
     opt_sc,
+    type Parser,
     rep,
     rep_sc,
     seq,
     str,
     tok,
-    type Parser,
     type Token
 } from 'typescript-parsec';
 
-export interface ScriptItem {
+
+interface ParserScriptItem {
     start: number;
     text: string;
-    end: number;
-    translation?: string;
     words?: ScriptWordsItem[];
-    singer?: number;
+    translation?: string;
+    singer?: string;
+}
+
+export interface ScriptItem extends ParserScriptItem{
+    end: number;
     chorus?: string;
 }
 
@@ -32,12 +38,24 @@ export interface ScriptWordsItem {
     endIndex: number;
 }
 
-export interface LrcJsonData {
+export interface LrcMetaData {
     ar?: string;
     ti?: string;
     al?: string;
-    scripts?: ScriptItem[];
+    au?: string;
+    length?: string;
+    offset?: string;
+    tool?: string;
+    ve?: string;
+}
 
+export interface ParsedLrc extends LrcMetaData {
+    scripts?: ParserScriptItem[];
+    [key: string]: any;
+}
+
+export interface LrcJsonData extends LrcMetaData {
+    scripts?: ScriptItem[];
     [key: string]: any;
 }
 
@@ -46,10 +64,10 @@ interface IDTag {
 }
 
 function convertTimeToMs({
-    mins,
-    secs,
-    decimals
-}: {
+                             mins,
+                             secs,
+                             decimals
+                         }: {
     mins?: number | string;
     secs?: number | string;
     decimals?: string;
@@ -84,7 +102,9 @@ const alpha = alt_sc(
 );
 
 const alphaStr = apply(rep(alpha), (r) => r.join(''));
-const spaces = rep_sc(str(' '));
+function spaces<K>(): Parser<K, Token<K>[]> {
+    return rep_sc(str(' '));
+}
 
 const unicodeStr = rep(tok('char'));
 
@@ -98,6 +118,10 @@ function trimmed<K, T>(p: Parser<K, Token<T>[]>): Parser<K, Token<T>[]> {
         }
         return r;
     });
+}
+
+function padded<K, T>(p: Parser<K, T>): Parser<K, T> {
+    return kmid(spaces(), p, spaces());
 }
 
 function anythingTyped(types: string[]) {
@@ -145,39 +169,60 @@ function tokenParserToText<K, T>(p: Parser<K, Token<T>> | Parser<K, Token<T>[]>)
     });
 }
 
+const singerIndicator = kleft(tok('char'), str(':'));
+const translateParser = kright(str('|'), unicodeStr);
+
 function lrcLine(
     wordDiv = ' ', legacy = false
-): Parser<unknown, ['script_item', ScriptItem] | ['lrc_tag', IDTag] | ['comment', string] | ['empty', null]> {
+): Parser<unknown, ['script_item', ParserScriptItem] | ['lrc_tag', IDTag] | ['comment', string] | ['empty', null]> {
     return alt_sc(
         legacy ? apply(seq(squareTS, trimmed(rep_sc(anythingTyped(['char', '[', ']', '<', '>'])))), (r) =>
-            ['script_item', { start: r[0], text: joinTokens(r[1]) } as any as ScriptItem] // TODO: Complete this
-        ) : apply(seq(squareTS, rep_sc(seq(opt_sc(angleTS), trimmed(rep_sc(anythingTyped(['char', '[', ']'])))))), (r) => {
-            const start = r[0];
+            ['script_item', { start: r[0], text: joinTokens(r[1]) } as ParserScriptItem] // TODO: Complete this
+        ) : apply(
+            seq(
+                squareTS, 
+                opt_sc(singerIndicator), 
+                rep_sc(
+                    seq(
+                        opt_sc(angleTS), 
+                        trimmed(rep_sc(anythingTyped(['char', '[', ']'])))
+                    )
+                ),
+                opt_sc(trimmed(translateParser))
+            ), (r) => {
+                const start = r[0];
+                const singerPart = r[1];
+                const mainPart = r[2];
+                const translatePart = r[3];
 
-            const text = r[1]
-                .map((s) => joinTokens(s[1]))
-                .filter((s) => s.trim().length > 0)
-                .join(wordDiv);
+                const text = mainPart
+                    .map((s) => joinTokens(s[1]))
+                    .filter((s) => s.trim().length > 0)
+                    .join(wordDiv);
 
-            const words = r[1]
-                .filter((s) => joinTokens(s[1]).trim().length > 0)
-                .map((s) => {
-                    const wordBegin = s[0];
-                    const word = s[1];
-                    let ret: Partial<ScriptWordsItem> = { start: wordBegin };
-                    if (word[0]) {
-                        ret.beginIndex = word[0].pos.columnBegin - 1;
-                    }
-                    if (word[word.length - 1]) {
-                        ret.endIndex = word[word.length - 1].pos.columnEnd;
-                    }
-                    return ret as ScriptWordsItem; // TODO: Complete this
-                });
-            return ['script_item', { start, text, words } as any as ScriptItem]; // TODO: Complete this
-        }),
+                const words = mainPart
+                    .filter((s) => joinTokens(s[1]).trim().length > 0)
+                    .map((s) => {
+                        const wordBegin = s[0];
+                        const word = s[1];
+                        let ret: Partial<ScriptWordsItem> = { start: wordBegin };
+                        if (word[0]) {
+                            ret.beginIndex = word[0].pos.columnBegin - 1;
+                        }
+                        if (word[word.length - 1]) {
+                            ret.endIndex = word[word.length - 1].pos.columnEnd;
+                        }
+                        return ret as ScriptWordsItem; // TODO: Complete this
+                    });
+                
+                const singer = singerPart?.text;
+                const translation = translatePart === undefined ? undefined : joinTokens(translatePart);
+                
+                return ['script_item', { start, text, words, singer, translation } as ParserScriptItem];
+            }),
         apply(lrcTag, (r) => ['lrc_tag', r as IDTag]),
-        apply(seq(spaces, str('#'), unicodeStr), (cmt) => ['comment', cmt[2].join('')] as const),
-        apply(spaces, (_) => ['empty', null] as const)
+        apply(seq(spaces(), str('#'), unicodeStr), (cmt) => ['comment', cmt[2].join('')] as const),
+        apply(spaces(), (_) => ['empty', null] as const)
     );
 }
 
@@ -191,7 +236,7 @@ export function dumpToken<T>(t: Token<T> | undefined): string {
 export function parseLRC(
     input: string,
     { wordDiv, strict, legacy }: { wordDiv?: string; strict?: boolean; legacy?: boolean } = {}
-): LrcJsonData {
+): ParsedLrc {
     const tokenizer = buildLexer([
         [true, /^\[/gu, '['],
         [true, /^\]/gu, ']'],
@@ -231,5 +276,5 @@ export function parseLRC(
                 default:
                     return acc;
             }
-        }, {} as LrcJsonData);
+        }, {} as ParsedLrc);
 }

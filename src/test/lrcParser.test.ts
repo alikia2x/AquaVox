@@ -7,6 +7,8 @@ describe('LRC parser test', () => {
     const test01Text = test01Buffer.toString('utf-8');
     const test02Buffer = fs.readFileSync('./src/test/resources/test-02.lrc');
     const test02Text = test02Buffer.toString('utf-8');
+    const test03Buffer = fs.readFileSync('./src/test/resources/test-03.lrc');
+    const test03Text = test03Buffer.toString('utf-8');
     it('Parses test-01.lrc', () => {
         const result = parseLRC(test01Text, { wordDiv: '', strict: true });
 
@@ -27,6 +29,11 @@ describe('LRC parser test', () => {
         expect(result.scripts!![0].start).toBe(0);
         expect(result.scripts!![0].words!![1].beginIndex).toBe("[00:00.00] <00:00.04> When <00:00.16> the".indexOf("the"));
         expect(result.scripts!![0].words!![1].start).toBe(160);
+    });
+    it('Parses test-03.lrc', () => {
+        const result = parseLRC(test03Text, { wordDiv: ' ', strict: true });
+        console.log(result.scripts);
+        expect(result.scripts!![5].translation).toBe("བྲོ་ར་འདི་ལ་བྲོ་ཅིག་འཁྲབ།");
     });
     it('Rejects some invalid LRCs', () => {
         const cases = [
