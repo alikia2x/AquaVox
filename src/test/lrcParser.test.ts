@@ -9,15 +9,22 @@ describe('LRC parser test', () => {
     const test02Text = test02Buffer.toString('utf-8');
     const test03Buffer = fs.readFileSync('./src/test/resources/test-03.lrc');
     const test03Text = test03Buffer.toString('utf-8');
-    it('Parses test-01.lrc', () => {
-        const result = parseLRC(test01Text, { wordDiv: '', strict: true });
 
-        expect(result.ar).toBe("洛天依");
-        expect(result.ti).toBe("中华少女·终");
-        expect(result.al).toBe("中华少女");
-        expect(result["tool"]).toBe("歌词滚动姬 https://lrc-maker.github.io");
-        expect(result.scripts!![1].text).toBe("因果与恩怨牵杂等谁来诊断");
-        expect(result.scripts!![1].start).toBe(49000 + 588);
+    const lf_alternatives = ['\n', '\r\n', '\r'];
+
+    it('Parses test-01.lrc', () => {
+        for (const lf of lf_alternatives) {
+            const text = test01Text.replaceAll('\n', lf);
+
+            const result = parseLRC(text, { wordDiv: '', strict: true });
+
+            expect(result.ar).toBe("洛天依");
+            expect(result.ti).toBe("中华少女·终");
+            expect(result.al).toBe("中华少女");
+            expect(result["tool"]).toBe("歌词滚动姬 https://lrc-maker.github.io");
+            expect(result.scripts!![1].text).toBe("因果与恩怨牵杂等谁来诊断");
+            expect(result.scripts!![1].start).toBe(49000 + 588);
+        }
     })
     it('Parses test-02.lrc', () => {
         const result = parseLRC(test02Text, { wordDiv: ' ', strict: true });

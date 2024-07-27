@@ -26,7 +26,7 @@ interface ParserScriptItem {
     singer?: string;
 }
 
-export interface ScriptItem extends ParserScriptItem{
+export interface ScriptItem extends ParserScriptItem {
     end: number;
     chorus?: string;
 }
@@ -64,10 +64,10 @@ interface IDTag {
 }
 
 function convertTimeToMs({
-                             mins,
-                             secs,
-                             decimals
-                         }: {
+    mins,
+    secs,
+    decimals
+}: {
     mins?: number | string;
     secs?: number | string;
     decimals?: string;
@@ -180,11 +180,11 @@ function lrcLine(
             ['script_item', { start: r[0], text: joinTokens(r[1]) } as ParserScriptItem] // TODO: Complete this
         ) : apply(
             seq(
-                squareTS, 
+                squareTS,
                 opt_sc(padded(singerIndicator)),
                 rep_sc(
                     seq(
-                        opt_sc(angleTS), 
+                        opt_sc(angleTS),
                         trimmed(rep_sc(anythingTyped(['char', '[', ']'])))
                     )
                 ),
@@ -214,10 +214,10 @@ function lrcLine(
                         }
                         return ret as ScriptWordsItem; // TODO: Complete this
                     });
-                
+
                 const singer = singerPart?.text;
                 const translation = translatePart === undefined ? undefined : joinTokens(translatePart);
-                
+
                 return ['script_item', { start, text, words, singer, translation } as ParserScriptItem];
             }),
         apply(lrcTag, (r) => ['lrc_tag', r as IDTag]),
@@ -247,7 +247,7 @@ export function parseLRC(
     ]);
 
     const lines = input
-        .split('\n')
+        .split(/\r\n|\r|\n/gu)
         .filter((line) => line.trim().length > 0)
         .map((line) => tokenizer.parse(line));
 
