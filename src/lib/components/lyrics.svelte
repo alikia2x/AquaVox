@@ -5,6 +5,7 @@
     import type { LrcJsonData } from 'lrc-parser-ts';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
+    import truncate from '$lib/truncate';
 
     // Component input properties
     export let lyrics: string[];
@@ -37,6 +38,22 @@
     let _refs: any[] = [];
     $: refs = _refs.filter(Boolean);
     $: getLyricIndex = createLyricsSearcher(originalLyrics);
+
+
+    // handle KeyDown event
+    function onKeyDown(e: KeyboardEvent) {
+        if (e.altKey && e.shiftKey && (e.metaKey || e.key === 'OS') && e.key === 'Enter') {
+            debugMode = !debugMode;
+            localStorage.setItem('debugMode', debugMode ? 'true' : 'false');
+        }
+    }
+
+    // using for debug mode
+    function extractTranslateValue(s: string): string | null {
+        const regex = /translateY\((-?\d*px)\)/;
+        let arr = regex.exec(s);
+        return arr==null ? null : arr[1];
+    }
 
     // Helper function to get CSS class for a lyric based on its index and progress
     function getClass(lyricIndex: number, progress: number) {
@@ -117,7 +134,110 @@
         }, 500);
     }
 
-    // Handle user adjusting progress state changes
+    // Handle scroll events in the lyrics container
+    function scrollHandler() {
+        scrolling = !scriptScrolling;
+        if (scrolling && originalLyrics.scripts) {
+            lastScroll = new Date().getTime();
+            for (let i = 0; i < originalLyrics.scripts.length; i++) {
+                if (refs[i]) {
+                    refs[i].style.filter = 'blur(0px)';
+                }
+            }
+        }
+        setTimeout(() => {
+            if (new Date().getTime() - lastScroll > 5000) {
+                scrolling = false;
+            }
+        }, 5500);
+    }
+
+    // Utility function to create a sleep/delay
+    function sleep(ms: number) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    // Scroll to corresponding lyric while adjusting progress
+    $: {
+        if ($userAdjustingProgress == true) {
+            const currentLyric = refs[getLyricIndex(progress)];
+            scrollToLyric(currentLyric);
+        }
+    }
+
+    // Update the current lyric and apply blur effect based on the progress
+    // worked in real-time.
+    $: {
+        (() => {
+            if (!lyricsContainer || !originalLyrics.scripts) return;
+
+            const scripts = originalLyrics.scripts;
+            currentPositionIndex = getLyricIndex(progress);
+            const cl = scripts[currentPositionIndex];
+
+            if (cl.start <= progress && progress <= cl.end) {
+                currentLyricIndex = currentPositionIndex;
+                nextUpdate.set(cl.end);
+            } else {
+                currentLyricIndex = -1;
+                nextUpdate.set(cl.start);
+            }
+
+            const currentLyric = refs[currentPositionIndex];
+            if ($userAdjustingProgress || scrolling || currentLyric.getBoundingClientRect().top < 0) return;
+
+            for (let i = 0; i < scripts.length; i++) {
+                const offset = Math.abs(i - currentPositionIndex);
+                const blurRadius = Math.min(offset * 0.96, 16);
+                if (refs[i]) {
+                    refs[i].style.filter = `blur(${blurRadius}px)`;
+                }
+            }
+        })();
+    }
+
+    // Main function that control's lyrics update during playing
+    // triggered by nextUpdate's update
+    async function lyricsUpdate(){
+        if (
+            currentPositionIndex < 0 ||
+            currentPositionIndex === currentAnimationIndex ||
+            currentPositionIndex === lastAdjustProgress ||
+            $userAdjustingProgress === true ||
+            scrolling
+        ) return;
+
+        const currentLyric = refs[currentPositionIndex];
+        const currentLyricRect = currentLyric.getBoundingClientRect();
+
+        if (originalLyrics.scripts && currentLyricRect.top < 0) return;
+
+        const offsetHeight = truncate(currentLyricRect.top - currentLyricTopMargin, 0, Infinity);
+
+        // prepare current line
+        currentLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+            opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
+        currentLyric.style.transform = `translateY(${-offsetHeight}px)`;
+
+        for (let i = currentPositionIndex - 1; i >= 0; i--) {
+            refs[i].style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+                opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
+            refs[i].style.transform = `translateY(${-offsetHeight}px)`;
+        }
+        if (currentPositionIndex + 1 < refs.length) {
+            const nextLyric = refs[currentPositionIndex + 1];
+            nextLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+                opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
+            nextLyric.style.transform = `translateY(${-offsetHeight}px)`;
+            await moveToNextLine(offsetHeight);
+        }
+        currentAnimationIndex = currentPositionIndex;
+    }
+
+
+    nextUpdate.subscribe(lyricsUpdate)
+
+    // Process while user is adjusting progress
     userAdjustingProgress.subscribe((adjusting) => {
         if (!originalLyrics) return;
         const scripts = originalLyrics.scripts;
@@ -155,117 +275,6 @@
         }
     });
 
-    // Handle scroll events in the lyrics container
-    function scrollHandler() {
-        scrolling = !scriptScrolling;
-        if (scrolling && originalLyrics.scripts) {
-            lastScroll = new Date().getTime();
-            for (let i = 0; i < originalLyrics.scripts.length; i++) {
-                if (refs[i]) {
-                    refs[i].style.filter = 'blur(0px)';
-                }
-            }
-        }
-        setTimeout(() => {
-            if (new Date().getTime() - lastScroll > 5000) {
-                scrolling = false;
-            }
-        }, 5500);
-    }
-
-    // Utility function to create a sleep/delay
-    function sleep(ms: number) {
-        return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    // Scroll to corresponding lyric while adjusting progress
-    $: {
-        if ($userAdjustingProgress == true) {
-            const currentLyric = refs[getLyricIndex(progress)];
-            scrollToLyric(currentLyric);
-        }
-    }
-
-    // Update the current lyric and apply blur effect based on the progress
-    $: {
-        (() => {
-            if (!lyricsContainer || !originalLyrics.scripts) return;
-
-            const scripts = originalLyrics.scripts;
-            currentPositionIndex = getLyricIndex(progress);
-            const cl = scripts[currentPositionIndex];
-
-            if (cl.start <= progress && progress <= cl.end) {
-                currentLyricIndex = currentPositionIndex;
-                nextUpdate.set(cl.end);
-            } else {
-                currentLyricIndex = -1;
-                nextUpdate.set(cl.start);
-            }
-
-            const currentLyric = refs[currentPositionIndex];
-            if ($userAdjustingProgress || scrolling || currentLyric.getBoundingClientRect().top < 0) return;
-
-            for (let i = 0; i < scripts.length; i++) {
-                const offset = Math.abs(i - currentPositionIndex);
-                const blurRadius = Math.min(offset * 0.96, 16);
-                if (refs[i]) {
-                    refs[i].style.filter = `blur(${blurRadius}px)`;
-                }
-            }
-        })();
-    }
-
-    nextUpdate.subscribe(async (nextUpdate) => {
-        if (
-            currentPositionIndex < 0 ||
-            currentPositionIndex === currentAnimationIndex ||
-            currentPositionIndex === lastAdjustProgress ||
-            $userAdjustingProgress === true ||
-            scrolling
-        ) return;
-
-        const currentLyric = refs[currentPositionIndex];
-
-        if (originalLyrics.scripts && currentLyric.getBoundingClientRect().top < 0) return;
-
-        const offsetHeight =
-            refs[currentPositionIndex].getBoundingClientRect().top -
-            currentLyricTopMargin;
-
-        // prepare current line
-        currentLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
-            opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
-        currentLyric.style.transform = `translateY(${-offsetHeight}px)`;
-
-        for (let i = currentPositionIndex - 1; i >= 0; i--) {
-            refs[i].style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
-                opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
-            refs[i].style.transform = `translateY(${-offsetHeight}px)`;
-        }
-        if (currentPositionIndex + 1 < refs.length) {
-            const nextLyric = refs[currentPositionIndex + 1];
-            nextLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
-                opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
-            nextLyric.style.transform = `translateY(${-offsetHeight}px)`;
-            await moveToNextLine(offsetHeight);
-        }
-        currentAnimationIndex = currentPositionIndex;
-    })
-
-    function onKeyDown(e: KeyboardEvent) {
-        if (e.altKey && e.shiftKey && (e.metaKey || e.key === 'OS') && e.key === 'Enter') {
-            debugMode = !debugMode;
-            localStorage.setItem('debugMode', debugMode ? 'true' : 'false');
-        }
-    }
-
-    function extractTranslateValue(s: string): string | null {
-        const regex = /translateY\((-?\d*px)\)/;
-        let arr = regex.exec(s);
-        return arr==null ? null : arr[1];
-    }
-
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
@@ -290,6 +299,7 @@
         class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
         text-left no-scrollbar overflow-y-auto z-[1] pt-16 lyrics"
         bind:this={lyricsContainer}
+        on:scroll={scrollHandler}
     >
         {#each lyrics as lyric, i}
             <p bind:this={_refs[i]} class={`${getClass(i, progress)} text-shadow-lg`}>
