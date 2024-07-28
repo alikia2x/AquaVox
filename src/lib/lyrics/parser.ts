@@ -51,11 +51,13 @@ export interface LrcMetaData {
 
 export interface ParsedLrc extends LrcMetaData {
     scripts?: ParserScriptItem[];
+
     [key: string]: any;
 }
 
 export interface LrcJsonData extends LrcMetaData {
     scripts?: ScriptItem[];
+
     [key: string]: any;
 }
 
@@ -64,10 +66,10 @@ interface IDTag {
 }
 
 function convertTimeToMs({
-    mins,
-    secs,
-    decimals
-}: {
+                             mins,
+                             secs,
+                             decimals
+                         }: {
     mins?: number | string;
     secs?: number | string;
     decimals?: string;
@@ -102,6 +104,7 @@ const alpha = alt_sc(
 );
 
 const alphaStr = apply(rep(alpha), (r) => r.join(''));
+
 function spaces<K>(): Parser<K, Token<K>[]> {
     return rep_sc(str(' '));
 }
@@ -278,4 +281,25 @@ export function parseLRC(
                     return acc;
             }
         }, {} as ParsedLrc);
+}
+
+export default function lrcParser(lrc: string): LrcJsonData {
+    const parsedLrc = parseLRC(lrc, { wordDiv: '', strict: true });
+    if (parsedLrc.scripts === undefined) {
+        return parsedLrc as LrcJsonData;
+    }
+    let finalLrc: LrcJsonData = parsedLrc as LrcJsonData;
+    let lyrics: ScriptItem[] = [];
+    let i = 0;
+    while (i < parsedLrc.scripts.length - 1) {
+        let lyricLine = parsedLrc.scripts[i] as ScriptItem;
+        lyricLine.start/=1000;
+        lyricLine.end = parsedLrc.scripts[i+1].start / 1000;
+        if (parsedLrc.scripts[i+1].text.trim() === "") {
+            i+=2;
+        } else i++;
+        lyrics.push(lyricLine);
+    }
+    finalLrc.scripts = lyrics;
+    return finalLrc;
 }

@@ -8,14 +8,14 @@
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
-    import lrcParser, { type LrcJsonData } from 'lrc-parser-ts';
+    import lrcParser, { type LrcJsonData } from '$lib/lyrics/parser';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
 
     const audioId = $page.params.id;
-    let audioPlayer: HTMLAudioElement;
+    let audioPlayer: HTMLAudioElement | null = null;
     let volume = 1;
     let name = '';
     let singer = '';
@@ -44,22 +44,26 @@
             ]
         });
         ms.setActionHandler('play', function () {
+            if (audioPlayer===null) return;
             audioPlayer.play();
             paused = false;
         });
 
         ms.setActionHandler('pause', function () {
+            if (audioPlayer===null) return;
             audioPlayer.pause();
             paused = true;
         });
 
         ms.setActionHandler('seekbackward', function () {
+            if (audioPlayer===null) return;
             if (audioPlayer.currentTime > 4) {
                 audioPlayer.currentTime = 0;
             }
         });
 
         ms.setActionHandler('previoustrack', function () {
+            if (audioPlayer===null) return;
             if (audioPlayer.currentTime > 4) {
                 audioPlayer.currentTime = 0;
             }
@@ -81,6 +85,7 @@
             prepared.push('cover');
         });
         localforage.getItem(`${audioId}-file`, function (err, file) {
+            if (audioPlayer===null) return;
             if (file) {
                 const f = file as File;
                 audioFile = f;
@@ -105,6 +110,7 @@
     }
 
     function playAudio() {
+        if (audioPlayer===null) return;
         if (audioPlayer.duration) {
             duration = audioPlayer.duration;
         }
@@ -114,7 +120,7 @@
     }
 
     $: {
-        if (!launched) {
+        if (!launched && audioPlayer) {
             const requirements = ['name', 'file', 'cover'];
             let flag = true;
             for (const r of requirements) {
@@ -152,6 +158,7 @@
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
+            if (audioPlayer===null) return;
             if ($userAdjustingProgress === false)
                 currentProgress = audioPlayer.currentTime;
             progressBarRaw.set(audioPlayer.currentTime);
@@ -159,6 +166,7 @@
     }
 
 	onMount(() => {
+        if (audioPlayer===null) return;
 		audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
 	});
 
@@ -175,7 +183,7 @@
 </script>
 
 <svelte:head>
-    <title>{name} - Aquavox</title>
+    <title>{name} - AquaVox</title>
 </svelte:head>
 
 <Background coverId={audioId} />
