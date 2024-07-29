@@ -1,6 +1,6 @@
 export default function toHumanSize(size: number | undefined){
     if (!size) return '0 B'
-    const units = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    const units = ['B', 'KB', 'MB', 'GB'];
     let unitIndex = 0;
     while (size >= 1000 && unitIndex < units.length - 1) {
         size /= 1000;
