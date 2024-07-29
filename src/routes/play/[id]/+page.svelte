@@ -202,14 +202,23 @@
     {hasLyrics}
 />
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress}/>
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer}/>
 
 <audio
     bind:this={audioPlayer}
     controls
     style="display: none"
+    on:play={() => {
+        if (audioPlayer===null) return;
+        paused = audioPlayer.paused;
+    }}
+    on:pause={() => {
+        if (audioPlayer===null) return;
+        paused = audioPlayer.paused;
+    }}
     on:ended={() => {
         paused = true;
+        if (audioPlayer == null) return;
         audioPlayer.pause();
     }}
 ></audio>

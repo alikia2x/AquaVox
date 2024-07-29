@@ -24,7 +24,6 @@
     let isInfoTopOverflowing = false;
     let songInfoTopContainer: HTMLDivElement;
     let songInfoTopContent: HTMLSpanElement;
-    let lastTouchProgress: number;
     let userAdjustingVolume = false;
 
     const mql = window.matchMedia('(max-width: 1280px)');
