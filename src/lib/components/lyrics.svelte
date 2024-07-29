@@ -2,7 +2,7 @@
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import type { LrcJsonData } from 'lrc-parser-ts';
+    import type { LrcJsonData } from '$lib/lyrics/parser';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
     import truncate from '$lib/truncate';
@@ -15,11 +15,18 @@
     // Local state and variables
     let getLyricIndex: Function;
     let debugMode = false;
+    let showTranslation = false;
     if (localStorage.getItem('debugMode') == null) {
         localStorage.setItem('debugMode', 'false');
     }
     else {
         debugMode = localStorage.getItem('debugMode')!.toLowerCase() === "true";
+    }
+    if (localStorage.getItem('showTranslation') == null) {
+        localStorage.setItem('showTranslation', 'false');
+    }
+    else {
+        showTranslation = localStorage.getItem('showTranslation')!.toLowerCase() === "true";
     }
     let currentLyricIndex = -1;
     let currentPositionIndex = -1;
@@ -31,7 +38,7 @@
     let scrolling = false;
     let scriptScrolling = false;
 
-    let currentLyricTopMargin = 288;
+    let currentLyricTopMargin = 208;
 
     // References to lyric elements
     let refs: HTMLParagraphElement[] = [];
@@ -45,6 +52,13 @@
         if (e.altKey && e.shiftKey && (e.metaKey || e.key === 'OS') && e.key === 'Enter') {
             debugMode = !debugMode;
             localStorage.setItem('debugMode', debugMode ? 'true' : 'false');
+        }
+        else if (e.key === 't') {
+            showTranslation = !showTranslation;
+            localStorage.setItem('showTranslation', showTranslation ? 'true' : 'false');
+            setTimeout(() => {
+               scrollToLyric(refs[currentPositionIndex])
+            }, 50);
         }
     }
 
@@ -281,7 +295,8 @@
 
 {#if debugMode && lyricsContainer}
     <div
-        class="absolute top-6 right-10 font-mono text-sm backdrop-blur-md z-20 bg-[rgba(255,255,255,0.15)] px-2 rounded-xl">
+        class="absolute top-6 right-10 font-mono text-sm backdrop-blur-md z-20 bg-[rgba(255,255,255,.15)]
+        px-2 rounded-xl text-white">
         <p>
             LyricIndex: {currentLyricIndex} PositionIndex: {currentPositionIndex}
             AnimationIndex:{currentAnimationIndex}
@@ -302,16 +317,21 @@
         on:scroll={scrollHandler}
     >
         {#each lyrics as lyric, i}
-            <p bind:this={_refs[i]} class={`${getClass(i, progress)} text-shadow-lg`}>
+            <div bind:this={_refs[i]} class="relative h-fit text-shadow-lg">
                 {#if debugMode && refs[i] && refs[i].style !== undefined}
-                    <span class="text-lg absolute -translate-y-4">{i} &nbsp;
+                    <span class="previous-lyric !text-lg !absolute !-translate-y-12">{i} &nbsp;
                         {originalLyrics.scripts[i].start} ~ {originalLyrics.scripts[i].end}
                         tY: {extractTranslateValue(refs[i].style.transform)}
                         top: {Math.round(refs[i].getBoundingClientRect().top)}px
                     </span>
                 {/if}
-                {lyric}
-            </p>
+                <p class={`${getClass(i, progress)}`}>
+                    {lyric}
+                </p>
+                {#if originalLyrics.scripts[i].translation && showTranslation}
+                    <div class={`${getClass(i, progress)} relative !text-xl !md:text-2xl lg:!text-3xl !top-1`}>{originalLyrics.scripts[i].translation}</div>
+                {/if}
+            </div>
         {/each}
         <div class="relative w-full h-[50rem]"></div>
     </div>
@@ -323,7 +343,7 @@
         --lyric-mobile-font-size: 2rem;
         --lyric-mobile-line-height: 2.4rem;
         --lyric-mobile-margin: 1.5rem 0;
-        --lyric-mobile-font-weight: 700;
+        --lyric-mobile-font-weight: 600;
         --lyric-desktop-font-size: 3.5rem;
         --lyric-desktop-line-height: 4.5rem;
         --lyric-desktop-margin: 1.75rem 0;

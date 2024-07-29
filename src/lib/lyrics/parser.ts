@@ -284,7 +284,7 @@ export function parseLRC(
 }
 
 export default function lrcParser(lrc: string): LrcJsonData {
-    const parsedLrc = parseLRC(lrc, { wordDiv: '', strict: true });
+    const parsedLrc = parseLRC(lrc, { wordDiv: '', strict: false });
     if (parsedLrc.scripts === undefined) {
         return parsedLrc as LrcJsonData;
     }
