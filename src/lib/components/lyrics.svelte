@@ -33,7 +33,6 @@
     let currentPositionIndex = -1;
     let currentAnimationIndex = -1;
     let lyricsContainer: HTMLDivElement | null;
-    let lastAdjustProgress = 0;
     let localProgress = 0;
     let lastScroll = 0;
     let scrolling = false;
@@ -217,7 +216,6 @@
         if (
             currentPositionIndex < 0 ||
             currentPositionIndex === currentAnimationIndex ||
-            currentPositionIndex === lastAdjustProgress ||
             $userAdjustingProgress === true ||
             scrolling
         ) return;
@@ -283,13 +281,6 @@
         }
     });
 
-    // Handle progress bar sliding events
-    progressBarSlideValue.subscribe((_) => {
-        if ($userAdjustingProgress === false && getLyricIndex) {
-            lastAdjustProgress = currentPositionIndex;
-        }
-    });
-
     function lyricClick(lyricIndex: number) {
         if (player===null || originalLyrics.scripts === undefined) return;
         player.currentTime = originalLyrics.scripts[lyricIndex].start;
@@ -309,7 +300,6 @@
             AnimationIndex:{currentAnimationIndex}
             NextUpdate: {$nextUpdate}
             Progress: {progress.toFixed(2)}
-            lastAdjustProgress: {lastAdjustProgress}
             scrollPosition: {lyricsContainer.scrollTop}
         </p>
     </div>
@@ -324,7 +314,9 @@
         on:scroll={scrollHandler}
     >
         {#each lyrics as lyric, i}
-            <div bind:this={_refs[i]} class="relative h-fit text-shadow-lg" on:click={() => {lyricClick(i)}}>
+            <!-- svelte-ignore a11y-click-events-have-key-events -->
+            <!-- svelte-ignore a11y-no-static-element-interactions -->
+            <div bind:this={_refs[i]} class="relative h-fit text-shadow-lg" on:click={() => {lyricClick(i)}} >
                 {#if debugMode && refs[i] && refs[i].style !== undefined}
                     <span class="previous-lyric !text-lg !absolute !-translate-y-12">{i} &nbsp;
                         {originalLyrics.scripts[i].start} ~ {originalLyrics.scripts[i].end}
@@ -332,11 +324,15 @@
                         top: {Math.round(refs[i].getBoundingClientRect().top)}px
                     </span>
                 {/if}
+
                 <p class={`${getClass(i, progress)} hover:bg-[rgba(200,200,200,0.2)] pl-2 rounded-lg duration-300 cursor-pointer `}>
+                    {#if originalLyrics.scripts[i].singer}
+                        <span class="singer">{originalLyrics.scripts[i].singer}</span>
+                    {/if}
                     {lyric}
                 </p>
                 {#if originalLyrics.scripts[i].translation && showTranslation}
-                    <div class={`${getClass(i, progress)} relative !text-xl !md:text-2xl lg:!text-3xl !top-1`}>{originalLyrics.scripts[i].translation}</div>
+                    <div class={`${getClass(i, progress)} pl-2 relative !text-xl !md:text-2xl lg:!text-3xl !top-1 duration-300 `}>{originalLyrics.scripts[i].translation}</div>
                 {/if}
             </div>
         {/each}
@@ -363,6 +359,18 @@
                 rgba(0, 0, 0, 1) calc(100% - 5rem),
                 rgba(0, 0, 0, 0) 100%
         );
+    }
+
+    .singer {
+        position: absolute;
+        display: inline-block;
+        bottom: 50%;
+        transform: translateY(calc(50%)) translateX(-3rem);
+        padding: 0.1rem 0.4rem;
+        background: rgba(255,255,255,.15);
+        border-radius: 0.4rem;
+        font-size: 1.5rem;
+        line-height: 2rem;
     }
 
     .no-scrollbar {

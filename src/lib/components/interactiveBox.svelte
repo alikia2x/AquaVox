@@ -112,7 +112,6 @@
             }}
             on:mousemove={(e) => {
                 if ($userAdjustingProgress) {
-                    console.log(e.offsetX )
                     adjustDisplayProgress(e.offsetX / progressBar.getBoundingClientRect().width);
                 }
             }}

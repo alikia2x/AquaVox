@@ -298,7 +298,9 @@ export default function lrcParser(lrc: string): LrcJsonData {
         if (parsedLrc.scripts[i+1].text.trim() === "") {
             i+=2;
         } else i++;
-        lyrics.push(lyricLine);
+        if (lyricLine.text.trim() !== "") {
+            lyrics.push(lyricLine);
+        }
     }
     finalLrc.scripts = lyrics;
     return finalLrc;
