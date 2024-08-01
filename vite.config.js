@@ -2,9 +2,10 @@ import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vitest/config';
 import { NodeGlobalsPolyfillPlugin } from '@esbuild-plugins/node-globals-polyfill';
 import rollupNodePolyFill from 'rollup-plugin-node-polyfills';
+import wasm from 'vite-plugin-wasm';
 
 export default defineConfig({
-    plugins: [sveltekit()],
+    plugins: [sveltekit(), wasm()],
     test: {
         include: ['src/**/*.{test,spec}.{js,ts}']
     },
@@ -27,7 +28,7 @@ export default defineConfig({
     },
     server: {
         fs: {
-            allow: ["./package.json"]
+            allow: ['./package.json']
         }
     }
 });
