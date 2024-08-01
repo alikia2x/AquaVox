@@ -234,6 +234,10 @@
     currentTime={Math.round(currentProgress * 1000)}
     playing={!paused}
     {onLyricLineClick}
+    alignPosition={0.3}
+    class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw]
+        xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
+        text-left no-scrollbar overflow-y-auto z-[1] font-semibold mix-blend-plus-lighter"
 />
 
 <audio

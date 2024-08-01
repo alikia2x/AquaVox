@@ -20,12 +20,20 @@
     export let linePosXSpringParams: Partial<spring.SpringParams> = {};
     export let linePosYSpringParams: Partial<spring.SpringParams> = {};
     export let lineScaleSpringParams: Partial<spring.SpringParams> = {};
-    export let bottomLine: any = null;
+    export let bottomLine: Node = document.createElement('div');
     export let onLyricLineClick: (line: LyricLineMouseEvent) => void = () => {};
     export let onLyricLineContextMenu: (line: LyricLineMouseEvent) => void = () => {};
-
     export let lyricPlayer: CoreLyricPlayer;
-    let wrapperEl: HTMLDivElement | null;
+    let className;
+    export { className as class };
+
+    let lyricsElement: HTMLDivElement | null;
+    let bottomLineElement: HTMLDivElement | null;
+
+    let animationCanceled = false;
+    let animationLastTime = -1;
+    let lineClickHandler: (e: Event) => void;
+    let contextMenuHandler: (e: Event) => void;
 
     $: {
         if (playing) {
@@ -34,9 +42,6 @@
             lyricPlayer.pause();
         }
     }
-
-    let animationCanceled = false;
-    let animationLastTime = -1;
 
     const onFrame = (time: number) => {
         if (animationCanceled) return;
@@ -58,7 +63,6 @@
         animationCanceled = true;
     };
 
-    // Monitor changes to `disabled`
     $: {
         if (!disabled) {
             startAnimation();
@@ -68,23 +72,24 @@
     }
 
     $: {
-        if (playing) {
-            lyricPlayer.resume();
-        } else {
-            lyricPlayer.pause();
+        if (lyricsElement) {
+            lyricsElement.appendChild(lyricPlayer.getElement());
+        }
+        if (bottomLineElement) {
+            lyricPlayer.getBottomLineElement().appendChild(bottomLine);
         }
     }
 
     $: {
-        if (lyricPlayer && wrapperEl) {
-            wrapperEl.appendChild(lyricPlayer.getElement());
-        }
-    }
-
-    $: {
-        if (alignAnchor !== undefined) {
-            lyricPlayer.setAlignAnchor(alignAnchor);
-        }
+        lyricPlayer.setAlignAnchor(alignAnchor);
+        lyricPlayer.setAlignPosition(alignPosition);
+        lyricPlayer.setEnableSpring(enableSpring);
+        lyricPlayer.setEnableScale(enableScale);
+        lyricPlayer.setEnableBlur(enableBlur);
+        lyricPlayer.setLinePosXSpringParams(linePosXSpringParams);
+        lyricPlayer.setLinePosYSpringParams(linePosYSpringParams);
+        lyricPlayer.setLineScaleSpringParams(lineScaleSpringParams);
+        lyricPlayer.setHidePassedLines(hidePassedLines);
     }
 
     $: {
@@ -93,40 +98,27 @@
     }
 
     $: {
-        lyricPlayer.setAlignPosition(alignPosition);
-    }
-
-    $: {
-        lyricPlayer.setEnableSpring(enableSpring);
-    }
-
-    $: {
-        lyricPlayer.setEnableScale(enableScale);
-    }
-
-    $: {
-        lyricPlayer.setEnableBlur(enableBlur);
-    }
-
-    $: {
         lyricPlayer.setCurrentTime(currentTime);
     }
 
     $: {
-        const handler = (e: Event) => onLyricLineClick(e as LyricLineMouseEvent);
-        lyricPlayer.addEventListener('line-click', handler);
+        lineClickHandler = (e: Event) => onLyricLineClick(e as LyricLineMouseEvent);
+        lyricPlayer.addEventListener('line-click', lineClickHandler);
     }
 
-    // Clean up on component unmount
+    $: {
+        contextMenuHandler = (e: Event) => onLyricLineContextMenu(e as LyricLineMouseEvent);
+        lyricPlayer.addEventListener('line-contextmenu', contextMenuHandler);
+    }
+
     onDestroy(() => {
         animationCanceled = true;
         lyricPlayer.dispose();
+        lyricPlayer.removeEventListener('line-contextmenu', contextMenuHandler);
+        lyricPlayer.removeEventListener('line-click', lineClickHandler);
     });
 </script>
 
-<div
-    bind:this={wrapperEl}
-    class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw]
-        xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
-        text-left no-scrollbar overflow-y-auto z-[1] pt-16 font-semibold mix-blend-plus-lighter"
-></div>
+<div bind:this={lyricsElement} class={className}></div>
+
+<div bind:this={bottomLineElement}></div>
