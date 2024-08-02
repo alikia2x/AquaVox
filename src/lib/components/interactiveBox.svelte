@@ -1,9 +1,9 @@
 <script lang="ts">
-    import formatDuration from '$lib/formatDuration';
+    import formatDuration from '$lib/utils/formatDuration';
     import { onMount } from 'svelte';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
-    import truncate from '$lib/truncate';
+    import truncate from '$lib/utils/truncate';
 
     export let name: string;
     export let singer: string = '';

@@ -4,7 +4,7 @@
     import Background from '$lib/components/background.svelte';
     import Cover from '$lib/components/cover.svelte';
     import InteractiveBox from '$lib/components/interactiveBox.svelte';
-    import extractFileName from '$lib/extractFileName';
+    import extractFileName from '$lib/utils/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';

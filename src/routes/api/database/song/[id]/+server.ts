@@ -1,5 +1,5 @@
 import { safePath } from '$lib/server/safePath';
-import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
+import { getCurrentFormattedDateTime } from '$lib/utils/songUpdateTime';
 import { json, error } from '@sveltejs/kit';
 import fs from 'fs';
 import type { RequestHandler } from './$types';

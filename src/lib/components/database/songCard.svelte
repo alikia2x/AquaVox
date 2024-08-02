@@ -1,6 +1,6 @@
 <script lang="ts">
-    import formatDuration from "$lib/formatDuration";
-    import { formatViews } from "$lib/formatViews";
+    import formatDuration from "$lib/utils/formatDuration";
+    import { formatViews } from "$lib/utils/formatViews";
 
     export let songData: MusicMetadata;
 </script>

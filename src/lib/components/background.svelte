@@ -2,7 +2,7 @@
     import { processImage } from '$lib/graphics';
     import blobToImageData from '$lib/graphics/blob2imageData';
     import imageDataToBlob from '$lib/graphics/imageData2blob';
-    import localforage from '$lib/storage';
+    import localforage from '$lib/utils/storage';
     export let coverId: string;
     let canvas: HTMLCanvasElement;
 

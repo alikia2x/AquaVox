@@ -1,6 +1,6 @@
 <script lang="ts">
     import { page } from '$app/stores';
-    import { getCurrentFormattedDateTime } from '$lib/songUpdateTime';
+    import { getCurrentFormattedDateTime } from '$lib/utils/songUpdateTime';
     let templateSongData: MusicMetadata = {
         id: '',
         name: '',

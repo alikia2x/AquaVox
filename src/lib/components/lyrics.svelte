@@ -5,7 +5,7 @@
     import type { LrcJsonData } from '$lib/lyrics/parser';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
-    import truncate from '$lib/truncate';
+    import truncate from '$lib/utils/truncate';
 
     // Component input properties
     export let lyrics: string[];

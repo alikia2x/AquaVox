@@ -1,8 +1,8 @@
 <script lang="ts">
-    import extractFileName from '$lib/extractFileName';
-    import getVersion from '$lib/getVersion';
-    import toHumanSize from '$lib/humanSize';
-    import localforage from '$lib/storage';
+    import extractFileName from '$lib/utils/extractFileName';
+    import getVersion from '$lib/utils/getVersion';
+    import toHumanSize from '$lib/utils/humanSize';
+    import localforage from '$lib/utils/storage';
     interface Song {
         name: string;
         singer?: string;

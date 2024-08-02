@@ -1,13 +1,13 @@
 <script lang="ts">
     import { useAtom } from 'jotai-svelte';
     import { fileListState, finalFileListState } from '$lib/state/fileList.state';
-    import toHumanSize from '$lib/humanSize';
-    import formatText from '$lib/formatText';
-    import extractFileName from '$lib/extractFileName';
-    import getAudioMeta from '$lib/getAudioCoverURL';
-    import convertCoverData from '$lib/convertCoverData';
+    import toHumanSize from '$lib/utils/humanSize';
+    import formatText from '$lib/utils/formatText';
+    import extractFileName from '$lib/utils/extractFileName';
+    import getAudioMeta from '$lib/utils/getAudioCoverURL';
+    import convertCoverData from '$lib/utils/convertCoverData';
     import type { IAudioMetadata } from 'music-metadata-browser';
-    import formatDuration from '$lib/formatDuration';
+    import formatDuration from '$lib/utils/formatDuration';
     const items = useAtom(fileListState);
     const finalItems = useAtom(finalFileListState);
     let displayItems: any[] = [];

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import formatDuration from '$lib/formatDuration';
+import formatDuration from '$lib/utils/formatDuration.js';
 import { safePath } from '$lib/server/safePath';
 
 describe('formatDuration test', () => {
