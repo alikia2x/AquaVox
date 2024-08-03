@@ -13,6 +13,7 @@
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
+    import { parseTTML, type LyricLine, type LyricWord } from '$lib/ttml';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;
@@ -44,26 +45,26 @@
             ]
         });
         ms.setActionHandler('play', function () {
-            if (audioPlayer===null) return;
+            if (audioPlayer === null) return;
             audioPlayer.play();
             paused = false;
         });
 
         ms.setActionHandler('pause', function () {
-            if (audioPlayer===null) return;
+            if (audioPlayer === null) return;
             audioPlayer.pause();
             paused = true;
         });
 
         ms.setActionHandler('seekbackward', function () {
-            if (audioPlayer===null) return;
+            if (audioPlayer === null) return;
             if (audioPlayer.currentTime > 4) {
                 audioPlayer.currentTime = 0;
             }
         });
 
         ms.setActionHandler('previoustrack', function () {
-            if (audioPlayer===null) return;
+            if (audioPlayer === null) return;
             if (audioPlayer.currentTime > 4) {
                 audioPlayer.currentTime = 0;
             }
@@ -85,7 +86,7 @@
             prepared.push('cover');
         });
         localforage.getItem(`${audioId}-file`, function (err, file) {
-            if (audioPlayer===null) return;
+            if (audioPlayer === null) return;
             if (file) {
                 const f = file as File;
                 audioFile = f;
@@ -99,10 +100,28 @@
             if (file) {
                 const f = file as File;
                 f.text().then((lr) => {
-                    originalLyrics = lrcParser(lr);
-                    if (!originalLyrics.scripts) return;
-                    for (const line of originalLyrics.scripts) {
-                        lyricsText.push(line.text);
+                    if (f.name.endsWith('.ttml')) {
+                        const lyricLines = parseTTML(lr).lyricLines;
+                        originalLyrics = {
+                            scripts: lyricLines.map((value: LyricLine, index: number, array: LyricLine[]) => {
+                                return {
+                                    text: value.words.map(word => word.word).join(''),
+                                    start: value.startTime / 1000,
+                                    end: value.endTime / 1000,
+                                    translation: value.translatedLyric || undefined
+                                };
+                            })
+                        };
+                        for (const line of originalLyrics.scripts!) {
+                            lyricsText.push(line.text);
+                        }
+                        hasLyrics = true;
+                    } else if (f.name.endsWith('.lrc')) {
+                        originalLyrics = lrcParser(lr);
+                        if (!originalLyrics.scripts) return;
+                        for (const line of originalLyrics.scripts) {
+                            lyricsText.push(line.text);
+                        }
                     }
                 });
             }
@@ -110,7 +129,7 @@
     }
 
     function playAudio() {
-        if (audioPlayer===null) return;
+        if (audioPlayer === null) return;
         if (audioPlayer.duration) {
             duration = audioPlayer.duration;
         }
@@ -158,17 +177,16 @@
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
-            if (audioPlayer===null) return;
-            if ($userAdjustingProgress === false)
-                currentProgress = audioPlayer.currentTime;
+            if (audioPlayer === null) return;
+            if ($userAdjustingProgress === false) currentProgress = audioPlayer.currentTime;
             progressBarRaw.set(audioPlayer.currentTime);
         }, 50);
     }
 
-	onMount(() => {
-        if (audioPlayer===null) return;
-		audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
-	});
+    onMount(() => {
+        if (audioPlayer === null) return;
+        audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
+    });
 
     $: {
         if (audioPlayer) {
@@ -202,18 +220,18 @@
     {hasLyrics}
 />
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer}/>
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} />
 
 <audio
     bind:this={audioPlayer}
     controls
     style="display: none"
     on:play={() => {
-        if (audioPlayer===null) return;
+        if (audioPlayer === null) return;
         paused = audioPlayer.paused;
     }}
     on:pause={() => {
-        if (audioPlayer===null) return;
+        if (audioPlayer === null) return;
         paused = audioPlayer.paused;
     }}
     on:ended={() => {

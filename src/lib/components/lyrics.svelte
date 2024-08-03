@@ -6,6 +6,7 @@
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
     import truncate from '$lib/truncate';
+    import { blur } from 'svelte/transition';
 
     // Component input properties
     export let lyrics: string[];
@@ -88,7 +89,7 @@
         for (let i = processingLineIndex; i < refs.length; i++) {
             const lyric = refs[i];
             lyric.style.transition =
-                `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease,
+                `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease, opacity 200ms ease,
                 font-size 200ms ease, scale 250ms ease`;
             lyric.style.transform = `translateY(${-h}px)`;
             processingLineIndex = i;
@@ -101,7 +102,7 @@
             for (let i = processingLineIndex; i < refs.length; i++) {
                 const lyric = refs[i];
                 lyric.style.transition =
-                    'transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
+                    'transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease, opacity 200ms ease, font-size 200ms ease, scale 250ms ease';
                 lyric.style.transform = `translateY(${-h}px)`;
                 processingLineIndex = i;
                 await sleep(75);
@@ -199,15 +200,34 @@
 
             const currentLyric = refs[currentPositionIndex];
             if ($userAdjustingProgress || scrolling || currentLyric.getBoundingClientRect().top < 0) return;
-
-            for (let i = 0; i < scripts.length; i++) {
+            
+            for (let i = 0; i < refs.length; i++) {
                 const offset = Math.abs(i - currentPositionIndex);
-                const blurRadius = Math.min(offset * 0.96, 16);
+                let blurRadius = Math.min(offset * 1.25, 16);
+                const rect = refs[i].getBoundingClientRect();
+                if (rect.top + rect.height < 0 || rect.top > lyricsContainer.getBoundingClientRect().height) {
+                    blurRadius = 0;
+                }
                 if (refs[i]) {
                     refs[i].style.filter = `blur(${blurRadius}px)`;
                 }
             }
         })();
+    }
+
+    function getViewportRange() {
+        let min = 0;
+        let max = 0;
+        for (let i = 0; i < refs.length; i++) {
+            const element = refs[i];
+            if (element.getBoundingClientRect().top < 0) {
+                min = i;
+            }
+            else if (element.getBoundingClientRect().bottom < 0) {
+                max = i;
+                return [min, max];
+            }
+        }
     }
 
     // Main function that control's lyrics update during playing
@@ -228,18 +248,20 @@
         const offsetHeight = truncate(currentLyricRect.top - currentLyricTopMargin, 0, Infinity);
 
         // prepare current line
-        currentLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+        currentLyric.style.transition = `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease,
             opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
         currentLyric.style.transform = `translateY(${-offsetHeight}px)`;
 
+        // prepare past lines
         for (let i = currentPositionIndex - 1; i >= 0; i--) {
-            refs[i].style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+            refs[i].style.transition = `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease,
                 opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
             refs[i].style.transform = `translateY(${-offsetHeight}px)`;
         }
+        await sleep(75);
         if (currentPositionIndex + 1 < refs.length) {
             const nextLyric = refs[currentPositionIndex + 1];
-            nextLyric.style.transition = `transform .6s cubic-bezier(.28,.01,.29,.99), filter 200ms ease,
+            nextLyric.style.transition = `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease,
                 opacity 200ms ease, font-size 200ms ease, scale 250ms ease`;
             nextLyric.style.transform = `translateY(${-offsetHeight}px)`;
             await moveToNextLine(offsetHeight);
@@ -347,9 +369,9 @@
         --lyric-mobile-line-height: 2.4rem;
         --lyric-mobile-margin: 1.5rem 0;
         --lyric-mobile-font-weight: 600;
-        --lyric-desktop-font-size: 3.5rem;
+        --lyric-desktop-font-size: 3rem;
         --lyric-desktop-line-height: 4.5rem;
-        --lyric-desktop-margin: 1.75rem 0;
+        --lyric-desktop-margin: 2.75rem 0;
     }
 
     .lyrics {
