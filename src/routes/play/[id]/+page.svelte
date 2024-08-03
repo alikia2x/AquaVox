@@ -11,12 +11,13 @@
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onDestroy, onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import { parseTTML, type TTMLLyric } from '$lib/ttml';
+    import { parseTTML } from '$lib/ttml';
     import type { LyricLine, LyricLineMouseEvent, LyricPlayer } from '@applemusic-like-lyrics/core';
     import NewLyrics from '$lib/components/newLyrics.svelte';
     import { LyricPlayer as CoreLyricPlayer } from '@applemusic-like-lyrics/core';
-    import { parseLrc } from '@applemusic-like-lyrics/lyric';
-    import { mapLyric } from '$lib/lyrics/mapLyric';
+    import lrcParser from '$lib/lyrics/LRCparser';
+    import mapLRCtoAMLL from '$lib/lyrics/LRCtoAMLL';
+    //import { parseLrc } from '@applemusic-like-lyrics/lyric';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;
@@ -100,32 +101,20 @@
             }
         });
         localforage.getItem(`${audioId}-lyric`, function (err, file) {
-            if (file) {
-                const f = file as File;
-                f.text().then((lr) => {
-                    if (f.name.endsWith('.ttml')) {
-                        lyricLines = parseTTML(lr).lyricLines;
-                        hasLyrics = true;
-                    } else if (f.name.endsWith('.lrc')) {
-                        lyricLines = parseLrc(lr).map((line, i, lines) => ({
-                            words: [
-                                {
-                                    word: line.words[0]?.word ?? '',
-                                    startTime: line.words[0]?.startTime ?? 0,
-                                    endTime: lines[i + 1]?.words?.[0]?.startTime ?? Infinity
-                                }
-                            ],
-                            startTime: line.words[0]?.startTime ?? 0,
-                            endTime: lines[i + 1]?.words?.[0]?.startTime ?? Infinity,
-                            translatedLyric: '',
-                            romanLyric: '',
-                            isBG: false,
-                            isDuet: false
-                        }));
-                        hasLyrics = true;
-                    }
-                });
-            }
+            if (!file) return;
+            const f = file as File;
+            f.text().then((lr) => {
+                if (f.name.endsWith('.ttml')) {
+                    lyricLines = parseTTML(lr).lyricLines;
+                    hasLyrics = true;
+                } 
+                else if (f.name.endsWith('.lrc')) {
+                    const parsed = lrcParser(lr);
+                    if (parsed.scripts == undefined) return;
+                    lyricLines = lrcParser(lr).scripts!.map(mapLRCtoAMLL);
+                    hasLyrics = true;
+                }
+            });
         });
     }
 
@@ -235,7 +224,7 @@
     playing={!paused}
     {onLyricLineClick}
     alignPosition={0.3}
-    class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw]
+    class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] md:px-6 lg:px-[7.5rem] xl:left-[45vw]
         xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
         text-left no-scrollbar overflow-y-auto z-[1] font-semibold mix-blend-plus-lighter"
 />

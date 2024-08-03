@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'fs';
-import { parseLRC } from '$lib/lyrics/parser';
+import { parseLRC } from '$lib/lyrics/LRCparser';
 
 describe('LRC parser test', () => {
     const test01Buffer = fs.readFileSync('./src/test/resources/test-01.lrc');

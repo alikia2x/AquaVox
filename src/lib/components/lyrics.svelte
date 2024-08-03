@@ -2,8 +2,7 @@
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import type { LrcJsonData } from '$lib/lyrics/parser';
-    import progressBarSlideValue from '$lib/state/progressBarSlideValue';
+    import type { LrcJsonData } from '$lib/lyrics/LRCparser';
     import nextUpdate from '$lib/state/nextUpdate';
     import truncate from '$lib/utils/truncate';
 

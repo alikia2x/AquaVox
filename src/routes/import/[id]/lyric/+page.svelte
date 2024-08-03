@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import FileList from '$lib/components/import/fileList.svelte';
     import FileSelector from '$lib/components/import/fileSelector.svelte';
-    import localforage from '$lib/utils/storage.js';
+    import localforage from '$lib/utils/storage';
     import { fileListState } from '$lib/state/fileList.state';
     import { useAtom } from 'jotai-svelte';
     const fileList = useAtom(fileListState);
