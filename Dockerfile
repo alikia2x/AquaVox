@@ -13,6 +13,9 @@ RUN bun install
 # Copy the rest of the application code
 COPY . .
 
+# Build the app
+RUN bun run build
+
 # Expose the port the app runs on
 EXPOSE 4173
 

@@ -11,7 +11,7 @@
     "test": "vitest",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
-    "go": "PORT=4173 node build"
+    "go": "PORT=4173 bun ./build"
   },
   "devDependencies": {
     "@iconify/svelte": "^4.0.2",
