@@ -1,7 +1,8 @@
 /**
  * @fileoverview
- * 解析 TTML 歌词文档到歌词数组的解析器
- * 用于解析从 Apple Music 来的歌词文件，且扩展并支持翻译和音译文本。
+ * Parser for TTML lyrics.
+ * Used to parse lyrics files from Apple Music, 
+ * and extended to support translation and pronounciation of text.
  * @see https://www.w3.org/TR/2018/REC-ttml1-20181108/
  */
 
@@ -22,7 +23,7 @@ function parseTimespan(timeSpan: string): number {
 		const sec = Number(matches.groups?.sec.replace(/:/, ".") || "0");
 		return Math.floor((hour * 3600 + min * 60 + sec) * 1000);
 	}
-	throw new TypeError(`时间戳字符串解析失败：${timeSpan}`);
+	throw new TypeError(`Failed to parse time stamp:${timeSpan}`);
 }
 
 export function parseTTML(ttmlText: string): TTMLLyric {

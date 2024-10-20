@@ -2,7 +2,7 @@
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import type { LrcJsonData } from '$lib/lyrics/parser';
+    import type { LrcJsonData } from '$lib/lyrics/type';
     import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
     import truncate from '$lib/truncate';
@@ -20,15 +20,13 @@
     let showTranslation = false;
     if (localStorage.getItem('debugMode') == null) {
         localStorage.setItem('debugMode', 'false');
-    }
-    else {
-        debugMode = localStorage.getItem('debugMode')!.toLowerCase() === "true";
+    } else {
+        debugMode = localStorage.getItem('debugMode')!.toLowerCase() === 'true';
     }
     if (localStorage.getItem('showTranslation') == null) {
         localStorage.setItem('showTranslation', 'false');
-    }
-    else {
-        showTranslation = localStorage.getItem('showTranslation')!.toLowerCase() === "true";
+    } else {
+        showTranslation = localStorage.getItem('showTranslation')!.toLowerCase() === 'true';
     }
     let currentLyricIndex = -1;
     let currentPositionIndex = -1;
@@ -47,18 +45,16 @@
     $: refs = _refs.filter(Boolean);
     $: getLyricIndex = createLyricsSearcher(originalLyrics);
 
-
     // handle KeyDown event
     function onKeyDown(e: KeyboardEvent) {
         if (e.altKey && e.shiftKey && (e.metaKey || e.key === 'OS') && e.key === 'Enter') {
             debugMode = !debugMode;
             localStorage.setItem('debugMode', debugMode ? 'true' : 'false');
-        }
-        else if (e.key === 't') {
+        } else if (e.key === 't') {
             showTranslation = !showTranslation;
             localStorage.setItem('showTranslation', showTranslation ? 'true' : 'false');
             setTimeout(() => {
-               scrollToLyric(refs[currentPositionIndex])
+                scrollToLyric(refs[currentPositionIndex]);
             }, 50);
         }
     }
@@ -67,7 +63,7 @@
     function extractTranslateValue(s: string): string | null {
         const regex = /translateY\((-?\d*px)\)/;
         let arr = regex.exec(s);
-        return arr==null ? null : arr[1];
+        return arr == null ? null : arr[1];
     }
 
     // Helper function to get CSS class for a lyric based on its index and progress
@@ -80,7 +76,7 @@
 
     // Function to move the lyrics up smoothly
     async function moveToNextLine(h: number) {
-        console.debug(new Date().getTime() , 'moveToNextLine', h);
+        console.debug(new Date().getTime(), 'moveToNextLine', h);
         // the line that's going to process (like a pointer)
         // by default, it's "the next line" after the lift
         let processingLineIndex = currentPositionIndex + 2;
@@ -88,14 +84,17 @@
         // modify translateY of all lines in viewport one by one to lift them up
         for (let i = processingLineIndex; i < refs.length; i++) {
             const lyric = refs[i];
-            lyric.style.transition =
-                `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease, opacity 200ms ease,
+            lyric.style.transition = `transform .5s cubic-bezier(.16,.02,.38,.98), filter 200ms ease, opacity 200ms ease,
                 font-size 200ms ease, scale 250ms ease`;
             lyric.style.transform = `translateY(${-h}px)`;
             processingLineIndex = i;
             await sleep(75);
             const twoLinesAhead = refs[i - 2];
-            if (lyricsContainer && twoLinesAhead.getBoundingClientRect().top > lyricsContainer.getBoundingClientRect().height) break;
+            if (
+                lyricsContainer &&
+                twoLinesAhead.getBoundingClientRect().top > lyricsContainer.getBoundingClientRect().height
+            )
+                break;
         }
 
         if (refs.length - processingLineIndex < 3) {
@@ -200,7 +199,7 @@
 
             const currentLyric = refs[currentPositionIndex];
             if ($userAdjustingProgress || scrolling || currentLyric.getBoundingClientRect().top < 0) return;
-            
+
             for (let i = 0; i < refs.length; i++) {
                 const offset = Math.abs(i - currentPositionIndex);
                 let blurRadius = Math.min(offset * 1.25, 16);
@@ -222,8 +221,7 @@
             const element = refs[i];
             if (element.getBoundingClientRect().top < 0) {
                 min = i;
-            }
-            else if (element.getBoundingClientRect().bottom < 0) {
+            } else if (element.getBoundingClientRect().bottom < 0) {
                 max = i;
                 return [min, max];
             }
@@ -232,13 +230,14 @@
 
     // Main function that control's lyrics update during playing
     // triggered by nextUpdate's update
-    async function lyricsUpdate(){
+    async function lyricsUpdate() {
         if (
             currentPositionIndex < 0 ||
             currentPositionIndex === currentAnimationIndex ||
             $userAdjustingProgress === true ||
             scrolling
-        ) return;
+        )
+            return;
 
         const currentLyric = refs[currentPositionIndex];
         const currentLyricRect = currentLyric.getBoundingClientRect();
@@ -269,8 +268,7 @@
         currentAnimationIndex = currentPositionIndex;
     }
 
-
-    nextUpdate.subscribe(lyricsUpdate)
+    nextUpdate.subscribe(lyricsUpdate);
 
     // Process while user is adjusting progress
     userAdjustingProgress.subscribe((adjusting) => {
@@ -304,63 +302,77 @@
     });
 
     function lyricClick(lyricIndex: number) {
-        if (player===null || originalLyrics.scripts === undefined) return;
+        if (player === null || originalLyrics.scripts === undefined) return;
         player.currentTime = originalLyrics.scripts[lyricIndex].start;
-        player.play()
+        player.play();
     }
-
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
 
-{#if debugMode && lyricsContainer}
-    <div
-        class="absolute top-6 right-10 font-mono text-sm backdrop-blur-md z-20 bg-[rgba(255,255,255,.15)]
-        px-2 rounded-xl text-white">
-        <p>
-            LyricIndex: {currentLyricIndex} PositionIndex: {currentPositionIndex}
-            AnimationIndex:{currentAnimationIndex}
-            NextUpdate: {$nextUpdate}
-            Progress: {progress.toFixed(2)}
-            scrollPosition: {lyricsContainer.scrollTop}
-        </p>
-    </div>
-{/if}
+<div {...$$restProps}>
+    {#if debugMode && lyricsContainer}
+        <div
+            class="absolute top-6 right-10 font-mono text-sm backdrop-blur-md z-20 bg-[rgba(255,255,255,.15)]
+        px-2 rounded-xl text-white"
+        >
+            <p>
+                LyricIndex: {currentLyricIndex} PositionIndex: {currentPositionIndex}
+                AnimationIndex:{currentAnimationIndex}
+                NextUpdate: {$nextUpdate}
+                Progress: {progress.toFixed(2)}
+                scrollPosition: {lyricsContainer.scrollTop}
+            </p>
+        </div>
+    {/if}
 
-
-{#if lyrics && originalLyrics && originalLyrics.scripts}
-    <div
-        class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
+    {#if lyrics && originalLyrics && originalLyrics.scripts}
+        <div
+            class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 lg:px-[7.5rem] xl:left-[45vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
         text-left no-scrollbar overflow-y-auto z-[1] pt-16 lyrics"
-        bind:this={lyricsContainer}
-        on:scroll={scrollHandler}
-    >
-        {#each lyrics as lyric, i}
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div bind:this={_refs[i]} class="relative h-fit text-shadow-lg" on:click={() => {lyricClick(i)}} >
-                {#if debugMode && refs[i] && refs[i].style !== undefined}
-                    <span class="previous-lyric !text-lg !absolute !-translate-y-12">{i} &nbsp;
-                        {originalLyrics.scripts[i].start} ~ {originalLyrics.scripts[i].end}
-                        tY: {extractTranslateValue(refs[i].style.transform)}
-                        top: {Math.round(refs[i].getBoundingClientRect().top)}px
-                    </span>
-                {/if}
-
-                <p class={`${getClass(i, progress)} hover:bg-[rgba(200,200,200,0.2)] pl-2 rounded-lg duration-300 cursor-pointer `}>
-                    {#if originalLyrics.scripts[i].singer}
-                        <span class="singer">{originalLyrics.scripts[i].singer}</span>
+            bind:this={lyricsContainer}
+            on:scroll={scrollHandler}
+        >
+            {#each lyrics as lyric, i}
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div
+                    bind:this={_refs[i]}
+                    class="relative h-fit text-shadow-lg"
+                    on:click={() => {
+                        lyricClick(i);
+                    }}
+                >
+                    {#if debugMode && refs[i] && refs[i].style !== undefined}
+                        <span class="previous-lyric !text-lg !absolute !-translate-y-12"
+                            >{i} &nbsp;
+                            {originalLyrics.scripts[i].start} ~ {originalLyrics.scripts[i].end}
+                            tY: {extractTranslateValue(refs[i].style.transform)}
+                            top: {Math.round(refs[i].getBoundingClientRect().top)}px
+                        </span>
                     {/if}
-                    {lyric}
-                </p>
-                {#if originalLyrics.scripts[i].translation && showTranslation}
-                    <div class={`${getClass(i, progress)} pl-2 relative !text-xl !md:text-2xl lg:!text-3xl !top-1 duration-300 `}>{originalLyrics.scripts[i].translation}</div>
-                {/if}
-            </div>
-        {/each}
-        <div class="relative w-full h-[50rem]"></div>
-    </div>
-{/if}
+
+                    <p
+                        class={`${getClass(i, progress)} hover:bg-[rgba(200,200,200,0.2)] pl-2 rounded-lg duration-300 cursor-pointer `}
+                    >
+                        {#if originalLyrics.scripts[i].singer}
+                            <span class="singer">{originalLyrics.scripts[i].singer}</span>
+                        {/if}
+                        {lyric}
+                    </p>
+                    {#if originalLyrics.scripts[i].translation && showTranslation}
+                        <div
+                            class={`${getClass(i, progress)} pl-2 relative !text-xl !md:text-2xl lg:!text-3xl !top-1 duration-300 `}
+                        >
+                            {originalLyrics.scripts[i].translation}
+                        </div>
+                    {/if}
+                </div>
+            {/each}
+            <div class="relative w-full h-[50rem]"></div>
+        </div>
+    {/if}
+</div>
 
 <!--suppress CssUnusedSymbol -->
 <style>
@@ -376,10 +388,10 @@
 
     .lyrics {
         mask-image: linear-gradient(
-                rgba(0, 0, 0, 0) 0%,
-                rgba(0, 0, 0, 1) 2rem,
-                rgba(0, 0, 0, 1) calc(100% - 5rem),
-                rgba(0, 0, 0, 0) 100%
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, 1) 2rem,
+            rgba(0, 0, 0, 1) calc(100% - 5rem),
+            rgba(0, 0, 0, 0) 100%
         );
     }
 
@@ -389,7 +401,7 @@
         bottom: 50%;
         transform: translateY(calc(50%)) translateX(-3rem);
         padding: 0.1rem 0.4rem;
-        background: rgba(255,255,255,.15);
+        background: rgba(255, 255, 255, 0.15);
         border-radius: 0.4rem;
         font-size: 1.5rem;
         line-height: 2rem;

@@ -8,12 +8,14 @@
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
-    import lrcParser, { type LrcJsonData } from '$lib/lyrics/parser';
+    import lrcParser from '$lib/lyrics/lrc/parser';
+    import type { LrcJsonData } from '$lib/lyrics/type';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import { parseTTML, type LyricLine, type LyricWord } from '$lib/ttml';
+    import { parseTTML, type LyricLine } from '$lib/lyrics/ttml';
+    import NewLyrics from '$lib/components/newLyrics.svelte';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;
@@ -101,17 +103,7 @@
                 const f = file as File;
                 f.text().then((lr) => {
                     if (f.name.endsWith('.ttml')) {
-                        const lyricLines = parseTTML(lr).lyricLines;
-                        originalLyrics = {
-                            scripts: lyricLines.map((value: LyricLine, index: number, array: LyricLine[]) => {
-                                return {
-                                    text: value.words.map(word => word.word).join(''),
-                                    start: value.startTime / 1000,
-                                    end: value.endTime / 1000,
-                                    translation: value.translatedLyric || undefined
-                                };
-                            })
-                        };
+                        originalLyrics = parseTTML(lr);
                         for (const line of originalLyrics.scripts!) {
                             lyricsText.push(line.text);
                         }
@@ -220,7 +212,9 @@
     {hasLyrics}
 />
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} />
+<NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer}/>
+
+<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} class="hidden" />
 
 <audio
     bind:this={audioPlayer}

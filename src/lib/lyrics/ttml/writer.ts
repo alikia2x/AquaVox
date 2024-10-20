@@ -1,9 +1,3 @@
-/**
- * @fileoverview
- * 用于将内部歌词数组对象导出成 TTML 格式的模块
- * 但是可能会有信息会丢失
- */
-
 import type { LyricLine, LyricWord, TTMLLyric } from "./ttml-types";
 
 function msToTimestamp(timeMS: number): string {
@@ -61,7 +55,7 @@ export function exportTTML(ttmlLyric: TTMLLyric, pretty = false): string {
 		return span;
 	}
 
-	const ttRoot = doc.createElement("tt");
+	const ttRoot = doc.createElement("code");
 
 	ttRoot.setAttribute("xmlns", "http://www.w3.org/ns/ttml");
 	ttRoot.setAttribute("xmlns:ttm", "http://www.w3.org/ns/ttml#metadata");

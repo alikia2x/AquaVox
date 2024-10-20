@@ -16,6 +16,8 @@ import {
     tok,
     type Token
 } from 'typescript-parsec';
+import type { LrcJsonData, ParsedLrc, ScriptItem, ScriptWordsItem } from '../type';
+import type { IDTag } from './type';
 
 
 interface ParserScriptItem {
@@ -24,45 +26,6 @@ interface ParserScriptItem {
     words?: ScriptWordsItem[];
     translation?: string;
     singer?: string;
-}
-
-export interface ScriptItem extends ParserScriptItem {
-    end: number;
-    chorus?: string;
-}
-
-export interface ScriptWordsItem {
-    start: number;
-    end: number;
-    beginIndex: number;
-    endIndex: number;
-}
-
-export interface LrcMetaData {
-    ar?: string;
-    ti?: string;
-    al?: string;
-    au?: string;
-    length?: string;
-    offset?: string;
-    tool?: string;
-    ve?: string;
-}
-
-export interface ParsedLrc extends LrcMetaData {
-    scripts?: ParserScriptItem[];
-
-    [key: string]: any;
-}
-
-export interface LrcJsonData extends LrcMetaData {
-    scripts?: ScriptItem[];
-
-    [key: string]: any;
-}
-
-interface IDTag {
-    [key: string]: string;
 }
 
 function convertTimeToMs({
