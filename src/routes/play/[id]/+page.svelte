@@ -4,7 +4,7 @@
     import Background from '$lib/components/background.svelte';
     import Cover from '$lib/components/cover.svelte';
     import InteractiveBox from '$lib/components/interactiveBox.svelte';
-    import Lyrics from '$lib/components/lyrics.svelte';
+    import Lyrics from '$lib/components/lyrics/lyrics.svelte';
     import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
@@ -15,7 +15,7 @@
     import { onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
     import { parseTTML, type LyricLine } from '$lib/lyrics/ttml';
-    import NewLyrics from '$lib/components/newLyrics.svelte';
+    import NewLyrics from '$lib/components/lyrics/newLyrics.svelte';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;

@@ -1,10 +1,9 @@
 <script lang="ts">
     import type { LrcJsonData } from '$lib/lyrics/type';
     import { onMount } from 'svelte';
-    import LyricsLine from './lyrics/lyricLine.svelte';
-    import type { ScriptItem } from 'lrc-parser-ts';
-    import LyricLine from './lyrics/lyricLine.svelte';
-    import type { LyricPos } from './lyrics/type';
+    import type { ScriptItem } from '$lib/lyrics/type';
+    import LyricLine from './lyricLine.svelte';
+    import type { LyricPos } from './type';
 
     // Props
     export let originalLyrics: LrcJsonData;
