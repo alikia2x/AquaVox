@@ -9,7 +9,8 @@
     const viewportHeight = document.documentElement.clientHeight;
     const viewportWidth = document.documentElement.clientWidth;
     const marginY = viewportWidth > 640 ? 36 : 0 ;
-    const currentLyrictTop = viewportHeight * 0.02;
+    const blurRatio = viewportWidth > 640 ? 1 : 1.4;
+    const currentLyrictTop = viewportWidth > 640 ? viewportHeight * 0.12 : viewportHeight * 0.05;
     const deceleration = 0.95; // Velocity decay factor for inertia
     const minVelocity = 0.1; // Minimum velocity to stop inertia
     document.body.style.overflow = 'hidden';
@@ -82,7 +83,7 @@
                 delay = 0.013 + Math.min(Math.min(currentLyricDuration, 0.1), 0.075 * (i - currentLyricIndex));
             }
             const offset = Math.abs(i - currentLyricIndex);
-            let blurRadius = Math.min(offset * 1.7, 16);
+            let blurRadius = Math.min(offset * blurRatio, 16);
             currentLyricComponent.setBlur(blurRadius);
             currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
         }
@@ -110,7 +111,7 @@
             currentLyricComponent.setY(currentY - deltaY);
         }
         scrolling = true;
-        //if (scrollingTimeout) clearTimeout(scrollingTimeout);
+        if (scrollingTimeout) clearTimeout(scrollingTimeout);
         scrollingTimeout = setTimeout(() => {
             scrolling = false;
         }, 5000);
@@ -181,7 +182,7 @@
                 console.log("computeLayout")
                 computeLayout();
             }
-            if (Math.abs(lastProgress - progress) > 0) {
+            if (Math.abs(lastProgress - progress) > 0.5) {
                 scrolling = false;
             }
             if (lastProgress - progress > 0) {
