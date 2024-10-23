@@ -214,7 +214,7 @@
 
 <NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer}/>
 
-<Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} class="hidden" />
+<!-- <Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} class="hidden" /> -->
 
 <audio
     bind:this={audioPlayer}

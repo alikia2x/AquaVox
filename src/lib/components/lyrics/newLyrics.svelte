@@ -3,7 +3,8 @@
     import { onMount } from 'svelte';
     import type { ScriptItem } from '$lib/lyrics/type';
     import LyricLine from './lyricLine.svelte';
-    import type { LyricPos } from './type';
+    import type { LyricLayout, LyricPos } from './type';
+    import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
 
     // Props
     export let originalLyrics: LrcJsonData;
@@ -14,23 +15,28 @@
     let lyricLines: ScriptItem[] = [];
     let lyricExists = false;
     let lyricsContainer: HTMLDivElement | null;
+    let lyricLayouts: LyricLayout[] = [];
     let debugMode = false;
     let showTranslation = false;
-
-    // Exlpaination:
-    // The hot module reloading makes the each lyric component position to be re-initialized,
-    // which causes the lyrics are all at {x: 0, y: 0},
-    // instead of the value calculated in the initLyricComponents.
-    // So, we need to store the initial position of each lyric component and restore it.
-    let lyricComponentInitPos = Array<LyricPos>(lyricLines.length).fill({ x: 0, y: 0 });
 
     // References to lyric elements
     let lyricElements: HTMLDivElement[] = [];
     let lyricComponents: LyricLine[] = [];
+    let lyricTopList: number[] = [];
+    let nextUpdate = 0;
+    const marginY = 48;
+
+    $: getLyricIndex = createLyricsSearcher(originalLyrics);
 
     function initLyricComponents() {
+        initLyricTopList();
+        for (let i = 0; i < lyricComponents.length; i++) {
+            lyricComponents[i].init({ x: 0, y: lyricTopList[i] });
+        }
+    }
+
+    function initLyricTopList() {
         let cumulativeHeight = 0;
-        const marginY = 48;
         for (let i = 0; i < lyricLines.length; i++) {
             const c = lyricComponents[i];
             lyricElements.push(c.getRef());
@@ -38,8 +44,35 @@
             const elementHeight = e.getBoundingClientRect().height;
             const elementTargetTop = cumulativeHeight;
             cumulativeHeight += elementHeight + marginY;
-            lyricComponentInitPos[i] = { x: 0, y: elementTargetTop };
+            lyricTopList.push(elementTargetTop);
         }
+    }
+
+    function computeLayout(progress: number) {
+        if (!originalLyrics.scripts) return;
+        const currentLyricIndex = getLyricIndex(progress);
+        const currentLyricDuration =
+            originalLyrics.scripts[currentLyricIndex].end - originalLyrics.scripts[currentLyricIndex].start;
+        const relativeOrigin = lyricTopList[currentLyricIndex];
+        for (let i = 0; i < lyricElements.length; i++) {
+            const currentLyricComponent = lyricComponents[i];
+            lyricLayouts[i] = {
+                blur: 0,
+                scale: 1,
+                pos: {
+                    y: lyricTopList[i] - relativeOrigin,
+                    x: 0
+                }
+            };
+            let delay = 0;
+            if (i <= currentLyricIndex) {
+                delay = 0;
+            } else {
+                delay = 0.013 + Math.min(Math.min(currentLyricDuration, 0.3), 0.075 * (i - currentLyricIndex));
+            }
+            currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
+        }
+        nextUpdate = originalLyrics.scripts[currentLyricIndex + 1].start;
     }
 
     $: {
@@ -52,6 +85,12 @@
     $: {
         if (lyricComponents.length > 0) {
             initLyricComponents();
+        }
+    }
+
+    $: {
+        if (lyricsContainer && lyricComponents.length > 0) {
+            if (progress >= nextUpdate) computeLayout(progress);
         }
     }
 
@@ -72,13 +111,7 @@
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}
-            <LyricLine
-                line={lyric}
-                index={i}
-                bind:this={lyricComponents[i]}
-                {debugMode}
-                initPos={lyricComponentInitPos[i]}
-            />
+            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} />
         {/each}
         <div class="relative w-full h-[50rem]"></div>
     </div>

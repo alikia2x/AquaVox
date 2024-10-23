@@ -7,7 +7,6 @@
     export let line: ScriptItem;
     export let index: number;
     export let debugMode: Boolean;
-    export let initPos: LyricPos;
     let ref: HTMLDivElement;
 
     let time = 0;
@@ -21,25 +20,18 @@
     let springX: Spring | undefined = undefined;
     let isCurrentLyric = false;
 
-    $: {
-        if (initPos) {
-            positionX = initPos.x;
-            positionY = initPos.y;
-        }
-    }
-
     function updateY(timestamp: number) {
         if (lastUpdateY === undefined) {
-            lastUpdateY = timestamp;
+            lastUpdateY = new Date().getTime();
         }
         if (springY === undefined) return;
-        time = (timestamp - lastUpdateY) / 1000;
+        time = (new Date().getTime() - lastUpdateY) / 1000;
         springY.update(time);
         positionY = springY.getCurrentPosition();
         if (!springY.arrived()) {
             requestAnimationFrame(updateY);
         }
-        lastUpdateY = timestamp;
+        lastUpdateY = new Date().getTime();
     }
 
     function updateX(timestamp: number) {
@@ -47,7 +39,7 @@
             lastUpdateX = timestamp;
         }
         if (springX === undefined) return;
-        time = (timestamp - lastUpdateX) / 1000;
+        time = (new Date().getTime() - lastUpdateX) / 1000;
         springX.update(time);
         positionX = springX.getCurrentPosition();
         if (!springX.arrived()) {
@@ -77,16 +69,18 @@
     };
 
     export const update = (pos: LyricPos, delay: number = 0) => {
-        if (lastPosX === undefined) {
+        if (lastPosX === undefined || lastPosY === undefined) {
             lastPosX = pos.x;
-        }
-        if (lastPosY === undefined) {
             lastPosY = pos.y;
         }
-        springY = createSpring(lastPosY, pos.y, 0.12, 0.7, delay);
-        springX = createSpring(lastPosX, pos.x, 0.12, 0.7, delay);
+        springY = createSpring(lastPosY, pos.y, .126, .85, delay);
+        springX = createSpring(lastPosX, pos.x, .126, .85, delay);
+        lastUpdateY = new Date().getTime();
+        lastUpdateX = new Date().getTime();
         requestAnimationFrame(updateY);
         requestAnimationFrame(updateX);
+        lastPosX = pos.x;
+        lastPosY = pos.y;
     };
 
     export const getInfo = () => {
@@ -109,7 +103,7 @@
 
 <div style="transform: translateY({positionY}px) translateX({positionX}px);" class="absolute z-50" bind:this={ref}>
     {#if debugMode}
-        <span class="text-lg absolute -translate-y-7">Line idx: {index}</span>
+        <span class="text-lg absolute -translate-y-7">Line idx: {index}, duration: {(line.end - line.start).toFixed(3)}</span>
     {/if}
     <span class={`text-white text-5xl font-semibold text-shadow-lg ${!isCurrentLyric && 'opacity-50'} `}>
         {line.text}
