@@ -3,10 +3,8 @@
     import createLyricsSearcher from '$lib/lyrics/lyricSearcher';
     import progressBarRaw from '$lib/state/progressBarRaw';
     import type { LrcJsonData } from '$lib/lyrics/type';
-    import progressBarSlideValue from '$lib/state/progressBarSlideValue';
     import nextUpdate from '$lib/state/nextUpdate';
-    import truncate from '$lib/truncate';
-    import { blur } from 'svelte/transition';
+    import truncate from '$lib/utils/truncate';
 
     // Component input properties
     export let lyrics: string[];

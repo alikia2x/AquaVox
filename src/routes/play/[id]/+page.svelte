@@ -4,15 +4,14 @@
     import Background from '$lib/components/background.svelte';
     import Cover from '$lib/components/cover.svelte';
     import InteractiveBox from '$lib/components/interactiveBox.svelte';
-    import Lyrics from '$lib/components/lyrics/lyrics.svelte';
-    import extractFileName from '$lib/extractFileName';
+    import extractFileName from '$lib/utils/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
     import lrcParser from '$lib/lyrics/lrc/parser';
     import type { LrcJsonData } from '$lib/lyrics/type';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
-    import { onDestroy, onMount } from 'svelte';
+    import { onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
     import { parseTTML, type LyricLine } from '$lib/lyrics/ttml';
     import NewLyrics from '$lib/components/lyrics/newLyrics.svelte';
@@ -28,9 +27,9 @@
     let paused: boolean = true;
     let launched = false;
     let prepared: string[] = [];
-    let lyricLines: LyricLine[];
+    let originalLyrics: LrcJsonData;
+    let lyricsText: string[] = [];
     let hasLyrics: boolean;
-    let lyricPlayer: LyricPlayer = new CoreLyricPlayer();
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
 
@@ -151,7 +150,6 @@
         if (audioPlayer) {
             audioPlayer.currentTime = duration * progress;
             currentProgress = duration * progress;
-            lyricPlayer.calcLayout(false, true);
         }
     }
 
@@ -188,10 +186,7 @@
         }
     }
 
-    function onLyricLineClick(e: LyricLineMouseEvent) {
-        lyricPlayer.resetScroll();
-        adjustProgress(lyricLines[e.lineIndex].startTime / 1000 / duration);
-    }
+    $: hasLyrics = !!originalLyrics;
 
     readDB();
 </script>
