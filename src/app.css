@@ -29,3 +29,10 @@ h2 {
 .text-shadow-none {
     text-shadow: none;
 }
+
+body,
+html {
+  position: fixed;
+  overflow: hidden;
+  overscroll-behavior: none;
+}

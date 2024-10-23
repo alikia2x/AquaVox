@@ -4,20 +4,18 @@
     import Background from '$lib/components/background.svelte';
     import Cover from '$lib/components/cover.svelte';
     import InteractiveBox from '$lib/components/interactiveBox.svelte';
-    import extractFileName from '$lib/utils/extractFileName';
+    import Lyrics from '$lib/components/lyrics/lyrics.svelte';
+    import extractFileName from '$lib/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
+    import lrcParser from '$lib/lyrics/lrc/parser';
+    import type { LrcJsonData } from '$lib/lyrics/type';
     import userAdjustingProgress from '$lib/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onDestroy, onMount } from 'svelte';
     import progressBarRaw from '$lib/state/progressBarRaw';
-    import { parseTTML } from '$lib/ttml';
-    import type { LyricLine, LyricLineMouseEvent, LyricPlayer } from '@applemusic-like-lyrics/core';
-    import NewLyrics from '$lib/components/newLyrics.svelte';
-    import { LyricPlayer as CoreLyricPlayer } from '@applemusic-like-lyrics/core';
-    import lrcParser from '$lib/lyrics/LRCparser';
-    import mapLRCtoAMLL from '$lib/lyrics/LRCtoAMLL';
-    //import { parseLrc } from '@applemusic-like-lyrics/lyric';
+    import { parseTTML, type LyricLine } from '$lib/lyrics/ttml';
+    import NewLyrics from '$lib/components/lyrics/newLyrics.svelte';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;
@@ -101,20 +99,24 @@
             }
         });
         localforage.getItem(`${audioId}-lyric`, function (err, file) {
-            if (!file) return;
-            const f = file as File;
-            f.text().then((lr) => {
-                if (f.name.endsWith('.ttml')) {
-                    lyricLines = parseTTML(lr).lyricLines;
-                    hasLyrics = true;
-                } 
-                else if (f.name.endsWith('.lrc')) {
-                    const parsed = lrcParser(lr);
-                    if (parsed.scripts == undefined) return;
-                    lyricLines = lrcParser(lr).scripts!.map(mapLRCtoAMLL);
-                    hasLyrics = true;
-                }
-            });
+            if (file) {
+                const f = file as File;
+                f.text().then((lr) => {
+                    if (f.name.endsWith('.ttml')) {
+                        originalLyrics = parseTTML(lr);
+                        for (const line of originalLyrics.scripts!) {
+                            lyricsText.push(line.text);
+                        }
+                        hasLyrics = true;
+                    } else if (f.name.endsWith('.lrc')) {
+                        originalLyrics = lrcParser(lr);
+                        if (!originalLyrics.scripts) return;
+                        for (const line of originalLyrics.scripts) {
+                            lyricsText.push(line.text);
+                        }
+                    }
+                });
+            }
         });
     }
 
@@ -178,9 +180,6 @@
         if (audioPlayer === null) return;
         audioPlayer.volume = localStorage.getItem('volume') ? Number(localStorage.getItem('volume')) : 1;
     });
-    onDestroy(() => {
-        if (audioPlayer === null) return;
-    });
 
     $: {
         if (audioPlayer) {
@@ -217,17 +216,9 @@
     {hasLyrics}
 />
 
-<NewLyrics
-    {lyricPlayer}
-    {lyricLines}
-    currentTime={Math.round(currentProgress * 1000)}
-    playing={!paused}
-    {onLyricLineClick}
-    alignPosition={0.3}
-    class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] md:px-6 lg:px-[7.5rem] xl:left-[45vw]
-        xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
-        text-left no-scrollbar overflow-y-auto z-[1] font-semibold mix-blend-plus-lighter"
-/>
+<NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer}/>
+
+<!-- <Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} class="hidden" /> -->
 
 <audio
     bind:this={audioPlayer}
