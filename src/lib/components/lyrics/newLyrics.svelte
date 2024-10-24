@@ -77,10 +77,14 @@
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
             let delay = 0;
-            if (i <= currentLyricIndex) {
+            if (i < currentLyricIndex) {
                 delay = 0;
-            } else {
-                delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.064 * (i - currentLyricIndex));
+            } 
+            else if (i == currentLyricIndex) {
+                delay = 0.042;
+            }
+            else {
+                delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.067 * (i - currentLyricIndex+1.2));
             }
             const offset = Math.abs(i - currentLyricIndex);
             let blurRadius = Math.min(offset * blurRatio, 16);

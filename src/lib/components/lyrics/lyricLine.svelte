@@ -5,7 +5,6 @@
     import type { Spring } from '$lib/graphics/spring/spring';
 
     const viewportWidth = document.documentElement.clientWidth;
-    const scaleCurrentLine = viewportWidth > 640 ? 1.02 : 1.045;
 
     export let line: ScriptItem;
     export let index: number;
@@ -18,7 +17,6 @@
     let time = 0;
     let positionX: number = 0;
     let positionY: number = 0;
-    let scale = 1;
     let opacity = 1;
     let stopped = false;
     let lastPosX: number | undefined = undefined;
@@ -76,7 +74,6 @@
     export const setCurrent = (isCurrent: boolean) => {
         isCurrentLyric = isCurrent;
         opacity = isCurrent ? 1 : 0.36;
-        scale = isCurrent ? scaleCurrentLine : 1;
     };
 
     export const setBlur = (blur: number) => {
@@ -112,8 +109,8 @@
         lastPosY = pos.y;
         positionX = pos.x;
         positionY = pos.y;
-        springX = createSpring(pos.x, pos.x, 0.1, 0.67);
-        springY = createSpring(pos.y, pos.y, 0.1, 0.67);
+        springX = createSpring(pos.x, pos.x, 0.114, 0.72);
+        springY = createSpring(pos.y, pos.y, 0.114, 0.72);
     };
 
     export const stop = () => {
@@ -126,8 +123,8 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-    style="transform: translate3d({positionX}px, {positionY}px, 0); scale: {scale}; 
-    transition-property: scale, opacity, text-shadow; transition-duration: 0.5s; transition-timing-function: ease-in-out; opacity: {opacity};
+    style="transform: translate3d({positionX}px, {positionY}px, 0); transition-property: opacity, text-shadow; 
+    transition-duration: 0.36s; transition-timing-function: ease-out; opacity: {opacity};
     transform-origin: center left;"
     class="absolute z-50 w-full pr-12 lg:pr-16 cursor-default py-5"
     bind:this={ref}
