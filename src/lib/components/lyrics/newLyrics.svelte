@@ -8,7 +8,7 @@
     // constants
     const viewportHeight = document.documentElement.clientHeight;
     const viewportWidth = document.documentElement.clientWidth;
-    const marginY = viewportWidth > 640 ? 36 : 0 ;
+    const marginY = viewportWidth > 640 ? 12 : 0 ;
     const blurRatio = viewportWidth > 640 ? 1 : 1.4;
     const currentLyrictTop = viewportWidth > 640 ? viewportHeight * 0.12 : viewportHeight * 0.05;
     const deceleration = 0.95; // Velocity decay factor for inertia
@@ -57,7 +57,7 @@
     }
 
     function initLyricTopList() {
-        let cumulativeHeight = 0;
+        let cumulativeHeight = currentLyrictTop;
         for (let i = 0; i < lyricLines.length; i++) {
             const c = lyricComponents[i];
             lyricElements.push(c.getRef());
@@ -80,7 +80,7 @@
             if (i <= currentLyricIndex) {
                 delay = 0;
             } else {
-                delay = 0.013 + Math.min(Math.min(currentLyricDuration, 0.1), 0.075 * (i - currentLyricIndex));
+                delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.064 * (i - currentLyricIndex));
             }
             const offset = Math.abs(i - currentLyricIndex);
             let blurRadius = Math.min(offset * blurRatio, 16);

@@ -5,7 +5,7 @@
     import type { Spring } from '$lib/graphics/spring/spring';
 
     const viewportWidth = document.documentElement.clientWidth;
-    const scaleCurrentLine = viewportWidth > 640 ? 1.02 : 1.045 ;
+    const scaleCurrentLine = viewportWidth > 640 ? 1.02 : 1.045;
 
     export let line: ScriptItem;
     export let index: number;
@@ -112,8 +112,8 @@
         lastPosY = pos.y;
         positionX = pos.x;
         positionY = pos.y;
-        springX = createSpring(pos.x, pos.x, 0.126, 0.8);
-        springY = createSpring(pos.y, pos.y, 0.126, 0.8);
+        springX = createSpring(pos.x, pos.x, 0.1, 0.67);
+        springY = createSpring(pos.y, pos.y, 0.1, 0.67);
     };
 
     export const stop = () => {
@@ -127,30 +127,35 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
     style="transform: translate3d({positionX}px, {positionY}px, 0); scale: {scale}; 
-    transition-property: scale, opacity; transition-duration: 0.5s; transition-timing-function: ease-in-out; opacity: {opacity};
+    transition-property: scale, opacity, text-shadow; transition-duration: 0.5s; transition-timing-function: ease-in-out; opacity: {opacity};
     transform-origin: center left;"
     class="absolute z-50 w-full pr-12 lg:pr-16 cursor-default py-5"
     bind:this={ref}
     on:touchstart={() => {
-        clickMask.style.backgroundColor = "rgba(255,255,255,.3)";
+        clickMask.style.backgroundColor = 'rgba(255,255,255,.3)';
     }}
     on:touchend={() => {
-        clickMask.style.backgroundColor = "transparent";
+        clickMask.style.backgroundColor = 'transparent';
     }}
     on:click={() => {
         lyricClick(index);
     }}
 >
-    <span class="absolute w-[calc(100%-2.5rem)] lg:w-[calc(100%-2.75rem)] h-full 
-    -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)]" bind:this={clickMask}>
-
+    <span
+        class="absolute w-[calc(100%-2.5rem)] lg:w-[calc(100%-3rem)] h-full
+        -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)]"
+        bind:this={clickMask}
+    >
     </span>
     {#if debugMode}
         <span class="text-lg absolute -translate-y-7">
             {index}: duration: {(line.end - line.start).toFixed(3)}, {line.start.toFixed(3)}~{line.end.toFixed(3)}
         </span>
     {/if}
-    <span class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold text-shadow-lg mr-4`}>
+    <span
+        class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold text-shadow-lg mr-4
+    ${isCurrentLyric ? 'text-glow' : ''}`}
+    >
         {line.text}
     </span>
     {#if line.translation}
@@ -160,3 +165,13 @@
         </span>
     {/if}
 </div>
+
+<style>
+    .text-glow {
+        text-shadow:
+            0 0 3px #ffffff2c,
+            0 0 6px #ffffff2c,
+            0 15px 30px rgba(0, 0, 0, 0.11),
+            0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+</style>
