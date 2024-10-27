@@ -1,16 +1,15 @@
 <script lang="ts">
-    import type { LrcJsonData } from '@core/lyrics/type';
+    import type { LrcJsonData, ScriptItem } from '@core/lyrics/type';
     import { onMount } from 'svelte';
-    import type { ScriptItem } from '@core/lyrics/type';
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
 
     // constants
     const viewportHeight = document.documentElement.clientHeight;
     const viewportWidth = document.documentElement.clientWidth;
-    const marginY = viewportWidth > 640 ? 12 : 0 ;
+    const marginY = viewportWidth > 640 ? 12 : 0;
     const blurRatio = viewportWidth > 640 ? 1 : 1.4;
-    const currentLyrictTop = viewportWidth > 640 ? viewportHeight * 0.12 : viewportHeight * 0.05;
+    const currentLyricTop = viewportWidth > 640 ? viewportHeight * 0.12 : viewportHeight * 0.05;
     const deceleration = 0.95; // Velocity decay factor for inertia
     const minVelocity = 0.1; // Minimum velocity to stop inertia
     document.body.style.overflow = 'hidden';
@@ -57,7 +56,7 @@
     }
 
     function initLyricTopList() {
-        let cumulativeHeight = currentLyrictTop;
+        let cumulativeHeight = currentLyricTop;
         for (let i = 0; i < lyricLines.length; i++) {
             const c = lyricComponents[i];
             lyricElements.push(c.getRef());
@@ -73,18 +72,16 @@
         if (!originalLyrics.scripts) return;
         const currentLyricDuration =
             originalLyrics.scripts[currentLyricIndex].end - originalLyrics.scripts[currentLyricIndex].start;
-        const relativeOrigin = lyricTopList[currentLyricIndex] - currentLyrictTop;
+        const relativeOrigin = lyricTopList[currentLyricIndex] - currentLyricTop;
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
             let delay = 0;
             if (i < currentLyricIndex) {
                 delay = 0;
-            } 
-            else if (i == currentLyricIndex) {
+            } else if (i == currentLyricIndex) {
                 delay = 0.042;
-            }
-            else {
-                delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.067 * (i - currentLyricIndex+1.2));
+            } else {
+                delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.067 * (i - currentLyricIndex + 1.2));
             }
             const offset = Math.abs(i - currentLyricIndex);
             let blurRadius = Math.min(offset * blurRatio, 16);
@@ -155,6 +152,7 @@
             velocityY *= deceleration; // Apply deceleration to velocity
             inertiaFrame = requestAnimationFrame(inertiaScroll); // Continue scrolling in next frame
         }
+
         inertiaScroll();
     }
 
@@ -183,7 +181,6 @@
     $: {
         if (lyricsContainer && lyricComponents.length > 0) {
             if (progress >= nextUpdate - 0.5 && !scrolling) {
-                console.log("computeLayout")
                 computeLayout();
             }
             if (Math.abs(lastProgress - progress) > 0.5) {
@@ -198,8 +195,7 @@
                 const nextStart = originalLyrics.scripts![Math.min(currentLyricIndex + 1, lyricLength - 1)].start;
                 if (currentEnd !== nextStart) {
                     nextUpdate = currentEnd;
-                }
-                else {
+                } else {
                     nextUpdate = nextStart;
                 }
             }
@@ -209,7 +205,15 @@
 
     $: {
         for (let i = 0; i < lyricElements.length; i++) {
-            const isCurrent = i == currentLyricIndex;
+            const s = originalLyrics.scripts![i].start;
+            const t = originalLyrics.scripts![i].end;
+            // Explain:
+            // The `currentLyricIndex` is also used for locating & layout computing,
+            // so when the current progress is in the interlude between two lyrics,
+            // `currentLyricIndex` still needs to have a valid value to ensure that
+            // the style and scrolling position are calculated correctly.
+            // But in that situation, the “current lyric index” does not exist.
+            const isCurrent = i == currentLyricIndex && s <= progress && progress <= t;
             const currentLyricComponent = lyricComponents[i];
             currentLyricComponent.setCurrent(isCurrent);
         }
