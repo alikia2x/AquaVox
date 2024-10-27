@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getCurrentFormattedDateTime } from '$lib/utils/songUpdateTime';
+    import { getCurrentFormattedDateTime } from '@core/utils/songUpdateTime';
     import type { MusicMetadata } from '@core/server/database/musicInfo';
     let templateSongData: MusicMetadata = {
         id: '',

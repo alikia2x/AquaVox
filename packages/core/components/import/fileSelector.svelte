@@ -3,7 +3,7 @@
     import ImportIcon from './importIcon.svelte';
     import { onMount } from 'svelte';
     import { useAtom } from 'jotai-svelte';
-    import { fileListState } from '$lib/state/fileList.state';
+    import { fileListState } from '@core/state/fileList.state';
     import AddIcon from './addIcon.svelte';
     const fileItems = useAtom(fileListState);
     export let accept: string = ".aac, .mp3, .wav, .ogg, .flac";

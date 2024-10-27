@@ -1,10 +1,10 @@
 <script>
     import FileList from '@core/components/import/fileList.svelte';
     import FileSelector from '@core/components/import/fileSelector.svelte';
-    import { fileListState, finalFileListState } from '$lib/state/fileList.state';
-    import { localImportFailed, localImportSuccess } from '$lib/state/localImportStatus.state';
+    import { fileListState, finalFileListState } from '@core/state/fileList.state';
+    import { localImportFailed, localImportSuccess } from '@core/state/localImportStatus.state';
     import { useAtom } from 'jotai-svelte';
-    import localforage from '$lib/utils/storage';
+    import localforage from '@core/utils/storage';
     import { v1 as uuidv1 } from 'uuid';
     const fileList = useAtom(fileListState);
     const finalFiles = useAtom(finalFileListState);

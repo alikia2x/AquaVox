@@ -2,8 +2,8 @@
     import { page } from '$app/stores';
     import FileList from '@core/components/import/fileList.svelte';
     import FileSelector from '@core/components/import/fileSelector.svelte';
-    import localforage from '$lib/utils/storage';
-    import { fileListState } from '$lib/state/fileList.state';
+    import localforage from '@core/utils/storage';
+    import { fileListState } from '@core/state/fileList.state';
     import { useAtom } from 'jotai-svelte';
     const fileList = useAtom(fileListState);
     const audioId = $page.params.id;

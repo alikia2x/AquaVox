@@ -4,15 +4,15 @@
     import Background from '@core/components/background.svelte';
     import Cover from '@core/components/cover.svelte';
     import InteractiveBox from '@core/components/interactiveBox.svelte';
-    import extractFileName from '$lib/utils/extractFileName';
+    import extractFileName from '@core/utils/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
     import lrcParser from '@core/lyrics/lrc/parser';
     import type { LrcJsonData } from '@core/lyrics/type';
-    import userAdjustingProgress from '$lib/state/userAdjustingProgress';
+    import userAdjustingProgress from '@core/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onMount } from 'svelte';
-    import progressBarRaw from '$lib/state/progressBarRaw';
+    import progressBarRaw from '@core/state/progressBarRaw';
     import { parseTTML } from '@core/lyrics/ttml';
     import NewLyrics from '@core/components/lyrics/newLyrics.svelte';
 
@@ -212,8 +212,6 @@
 />
 
 <NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer}/>
-
-<!-- <Lyrics lyrics={lyricsText} {originalLyrics} progress={currentProgress} player={audioPlayer} class="hidden" /> -->
 
 <audio
     bind:this={audioPlayer}
