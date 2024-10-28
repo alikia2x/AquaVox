@@ -203,21 +203,21 @@
         lastProgress = progress;
     }
 
-    $: {
-        for (let i = 0; i < lyricElements.length; i++) {
-            const s = originalLyrics.scripts![i].start;
-            const t = originalLyrics.scripts![i].end;
-            // Explain:
-            // The `currentLyricIndex` is also used for locating & layout computing,
-            // so when the current progress is in the interlude between two lyrics,
-            // `currentLyricIndex` still needs to have a valid value to ensure that
-            // the style and scrolling position are calculated correctly.
-            // But in that situation, the “current lyric index” does not exist.
-            const isCurrent = i == currentLyricIndex && s <= progress && progress <= t;
-            const currentLyricComponent = lyricComponents[i];
-            currentLyricComponent.setCurrent(isCurrent);
-        }
-    }
+    // $: {
+    //     for (let i = 0; i < lyricElements.length; i++) {
+    //         const s = originalLyrics.scripts![i].start;
+    //         const t = originalLyrics.scripts![i].end;
+    //         // Explain:
+    //         // The `currentLyricIndex` is also used for locating & layout computing,
+    //         // so when the current progress is in the interlude between two lyrics,
+    //         // `currentLyricIndex` still needs to have a valid value to ensure that
+    //         // the style and scrolling position are calculated correctly.
+    //         // But in that situation, the “current lyric index” does not exist.
+    //         const isCurrent = i == currentLyricIndex && s <= progress && progress <= t;
+    //         const currentLyricComponent = lyricComponents[i];
+    //         currentLyricComponent.setCurrent(isCurrent);
+    //     }
+    // }
 
     onMount(() => {
         // Initialize
@@ -263,7 +263,7 @@
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}
-            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} />
+            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress} />
         {/each}
     </div>
 {/if}

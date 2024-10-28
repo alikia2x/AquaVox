@@ -5,11 +5,11 @@ export interface ScriptItem extends ParserScriptItem {
     chorus?: string;
 }
 
-export interface ScriptWordsItem {
-    start: number;
-    end: number;
-    beginIndex: number;
-    endIndex: number;
+export interface LyricWord {
+    startTime: number;
+    endTime: number;
+    word: string;
+    emptyBeat?: number;
 }
 
 export interface LrcMetaData {

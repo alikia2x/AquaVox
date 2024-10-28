@@ -8,6 +8,7 @@
     export let index: number;
     export let debugMode: Boolean;
     export let lyricClick: Function;
+    export let progress: number;
 
     let ref: HTMLDivElement;
     let clickMask: HTMLSpanElement;
@@ -121,25 +122,25 @@
 <!-- svelte-ignore a11y-click-events-have-key-events -->
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-    style="transform: translate3d({positionX}px, {positionY}px, 0); transition-property: opacity, text-shadow; 
-    transition-duration: 0.36s; transition-timing-function: ease-out; opacity: {opacity};
-    transform-origin: center left;"
-    class="absolute z-50 w-full pr-12 lg:pr-16 cursor-default py-5"
     bind:this={ref}
-    on:touchstart={() => {
-        clickMask.style.backgroundColor = 'rgba(255,255,255,.3)';
+    class="absolute z-50 w-full pr-12 lg:pr-16 cursor-default py-5"
+    on:click={() => {
+        lyricClick(index);
     }}
     on:touchend={() => {
         clickMask.style.backgroundColor = 'transparent';
     }}
-    on:click={() => {
-        lyricClick(index);
+    on:touchstart={() => {
+        clickMask.style.backgroundColor = 'rgba(255,255,255,.3)';
     }}
+    style="transform: translate3d({positionX}px, {positionY}px, 0); transition-property: text-shadow;
+    transition-duration: 0.36s; transition-timing-function: ease-out;
+    transform-origin: center left;"
 >
     <span
+        bind:this={clickMask}
         class="absolute w-[calc(100%-2.5rem)] lg:w-[calc(100%-3rem)] h-full
         -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)]"
-        bind:this={clickMask}
     >
     </span>
     {#if debugMode}
@@ -147,11 +148,30 @@
             {index}: duration: {(line.end - line.start).toFixed(3)}, {line.start.toFixed(3)}~{line.end.toFixed(3)}
         </span>
     {/if}
-    <span
-        class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4`}
-    >
-        {line.text}
-    </span>
+    {#if line.words}
+        <span
+            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 `}
+        >
+            {#each line.words as word}
+                {#if word.word}
+                    {#each word.word.split("") as chr, i}
+                    <span
+                        class={(line.start <= progress && progress <= line.end && progress > (word.endTime - word.startTime) * ((i)/word.word.length) + word.startTime ? "opacity-100" : "opacity-35") + " inline-block duration-300"}
+                    >
+                        {chr}
+                    </span>
+                    {/each}
+                {/if}
+            {/each}
+        </span>
+    {:else}
+        <span
+            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 ${line.start <= progress && progress <= line.end ? "opacity-100" : "opacity-35"}`}
+        >
+            {line.text}
+        </span>
+    {/if}
+
     {#if line.translation}
         <br />
         <span class={`pl-2 relative text-xl lg:text-2xl top-2 duration-300 text-white`}>

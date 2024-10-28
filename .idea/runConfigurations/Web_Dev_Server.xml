@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Dev Server" type="ShConfigurationType" focusToolWindowBeforeRun="true">
-    <option name="SCRIPT_TEXT" value="bun dev" />
+  <configuration default="false" name="Web Dev Server" type="ShConfigurationType" focusToolWindowBeforeRun="true">
+    <option name="SCRIPT_TEXT" value="bun web:dev" />
     <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
     <option name="SCRIPT_PATH" value="" />
     <option name="SCRIPT_OPTIONS" value="" />

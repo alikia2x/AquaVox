@@ -1,3 +1,5 @@
+import type { ScriptWordsItem } from "../type";
+
 export interface ParserScriptItem {
     start: number;
     text: string;
