@@ -78,6 +78,7 @@ export function parseTTML(ttmlText: string): TTMLLyric {
 				lineEl.getAttribute("ttm:agent") !== mainAgentId,
 			startTime: 0,
 			endTime: 0,
+			singer: ""
 		};
 		if (isBG) line.isDuet = isDuet;
 		let haveBg = false;
@@ -101,6 +102,8 @@ export function parseTTML(ttmlText: string): TTMLLyric {
 						line.translatedLyric = wordEl.innerHTML;
 					} else if (role === "x-roman") {
 						line.romanLyric = wordEl.innerHTML;
+					} else if (role === "x-singer") {
+						line.singer = wordEl.innerHTML;
 					}
 				} else if (wordEl.hasAttribute("begin") && wordEl.hasAttribute("end")) {
 					const word: LyricWord = {

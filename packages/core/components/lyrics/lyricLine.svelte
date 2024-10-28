@@ -4,8 +4,6 @@
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
 
-    const viewportWidth = document.documentElement.clientWidth;
-
     export let line: ScriptItem;
     export let index: number;
     export let debugMode: Boolean;
@@ -150,25 +148,14 @@
         </span>
     {/if}
     <span
-        class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold text-shadow-lg mr-4
-    ${isCurrentLyric ? 'text-glow' : ''}`}
+        class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4`}
     >
         {line.text}
     </span>
     {#if line.translation}
         <br />
-        <span class={`pl-2 relative text-xl lg:text-2xl top-2 duration-300`}>
+        <span class={`pl-2 relative text-xl lg:text-2xl top-2 duration-300 text-white`}>
             {line.translation}
         </span>
     {/if}
 </div>
-
-<style>
-    .text-glow {
-        text-shadow:
-            0 0 3px #ffffff2c,
-            0 0 6px #ffffff2c,
-            0 15px 30px rgba(0, 0, 0, 0.11),
-            0 5px 15px rgba(0, 0, 0, 0.08);
-    }
-</style>

@@ -23,4 +23,5 @@ export interface LyricLine {
 	isDuet: boolean;
 	startTime: number;
 	endTime: number;
+	singer: string;
 }
