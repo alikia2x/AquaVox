@@ -4,11 +4,16 @@
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
 
+    const viewportWidth = document.documentElement.clientWidth;
+    const blurRatio = viewportWidth > 640 ? 1 : 1.4;
+
     export let line: ScriptItem;
     export let index: number;
     export let debugMode: Boolean;
     export let lyricClick: Function;
     export let progress: number;
+    export let currentLyricIndex: number;
+    export let scrolling: boolean;
 
     let ref: HTMLDivElement;
     let clickMask: HTMLSpanElement;
@@ -75,9 +80,21 @@
         opacity = isCurrent ? 1 : 0.36;
     };
 
-    export const setBlur = (blur: number) => {
-        ref.style.filter = `blur(${blur}px)`;
-    };
+    $: {
+        if (ref && ref.style) {
+            let blurRadius = 0;
+            const offset = Math.abs(index - currentLyricIndex);
+            if (progress > line.end) {
+                blurRadius = Math.min(offset * blurRatio, 16);
+            } else if (line.start <= progress && progress <= line.end) {
+                blurRadius = 0;
+            } else {
+                blurRadius = Math.min(offset * blurRatio, 16);
+            }
+            if (scrolling) blurRadius=0;
+            ref.style.filter = `blur(${blurRadius}px)`;
+        }
+    }
 
     export const update = (pos: LyricPos, delay: number = 0) => {
         if (lastPosX === undefined || lastPosY === undefined) {
@@ -140,7 +157,7 @@
     <span
         bind:this={clickMask}
         class="absolute w-[calc(100%-2.5rem)] lg:w-[calc(100%-3rem)] h-full
-        -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)]"
+        -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)] z-[100] "
     >
     </span>
     {#if debugMode}
@@ -148,25 +165,25 @@
             {index}: duration: {(line.end - line.start).toFixed(3)}, {line.start.toFixed(3)}~{line.end.toFixed(3)}
         </span>
     {/if}
-    {#if line.words}
+    {#if line.words !== undefined && line.words.length > 0}
         <span
             class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 `}
         >
             {#each line.words as word}
                 {#if word.word}
                     {#each word.word.split("") as chr, i}
-                    <span
-                        class={(line.start <= progress && progress <= line.end && progress > (word.endTime - word.startTime) * ((i)/word.word.length) + word.startTime ? "opacity-100" : "opacity-35") + " inline-block duration-300"}
-                    >
-                        {chr}
-                    </span>
+                        <span
+                            class={(line.start <= progress && progress <= line.end && progress > (word.endTime - word.startTime) * ((i)/word.word.length) + word.startTime ? "opacity-100 text-glow" : "opacity-35") + " inline-block duration-300"}
+                        >
+                            {chr}
+                        </span>
                     {/each}
                 {/if}
             {/each}
         </span>
     {:else}
         <span
-            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 ${line.start <= progress && progress <= line.end ? "opacity-100" : "opacity-35"}`}
+            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 ${line.start <= progress && progress <= line.end ? "opacity-100 text-glow" : "opacity-35"}`}
         >
             {line.text}
         </span>
@@ -179,3 +196,14 @@
         </span>
     {/if}
 </div>
+
+
+<style>
+    .text-glow {
+        text-shadow:
+                0 0 3px #ffffff2c,
+                0 0 6px #ffffff2c,
+                0 15px 30px rgba(0, 0, 0, 0.11),
+                0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+</style>

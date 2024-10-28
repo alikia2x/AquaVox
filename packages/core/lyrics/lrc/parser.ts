@@ -16,14 +16,13 @@ import {
     tok,
     type Token
 } from 'typescript-parsec';
-import type { LrcJsonData, ParsedLrc, ScriptItem, ScriptWordsItem } from '../type';
+import type { LrcJsonData, ParsedLrc, ScriptItem } from '../type';
 import type { IDTag } from './type';
 
 
 interface ParserScriptItem {
     start: number;
     text: string;
-    words?: ScriptWordsItem[];
     translation?: string;
     singer?: string;
 }
@@ -166,25 +165,10 @@ function lrcLine(
                     .filter((s) => s.trim().length > 0)
                     .join(wordDiv);
 
-                const words = mainPart
-                    .filter((s) => joinTokens(s[1]).trim().length > 0)
-                    .map((s) => {
-                        const wordBegin = s[0];
-                        const word = s[1];
-                        let ret: Partial<ScriptWordsItem> = { start: wordBegin };
-                        if (word[0]) {
-                            ret.beginIndex = word[0].pos.columnBegin - 1;
-                        }
-                        if (word[word.length - 1]) {
-                            ret.endIndex = word[word.length - 1].pos.columnEnd;
-                        }
-                        return ret as ScriptWordsItem; // TODO: Complete this
-                    });
-
                 const singer = singerPart?.text;
                 const translation = translatePart === undefined ? undefined : joinTokens(translatePart);
 
-                return ['script_item', { start, text, words, singer, translation } as ParserScriptItem];
+                return ['script_item', { start, text, singer, translation } as ParserScriptItem];
             }),
         apply(lrcTag, (r) => ['lrc_tag', r as IDTag]),
         apply(seq(spaces(), str('#'), unicodeStr), (cmt) => ['comment', cmt[2].join('')] as const),
@@ -206,8 +190,6 @@ export function parseLRC(
     const tokenizer = buildLexer([
         [true, /^\[/gu, '['],
         [true, /^\]/gu, ']'],
-        [true, /^</gu, '<'],
-        [true, /^>/gu, '>'],
         [true, /^\|/gu, '|'],
         [true, /^./gu, 'char']
     ]);

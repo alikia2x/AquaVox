@@ -75,17 +75,15 @@
         const relativeOrigin = lyricTopList[currentLyricIndex] - currentLyricTop;
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
+            const lyric = originalLyrics.scripts[i];
             let delay = 0;
-            if (i < currentLyricIndex) {
+            if (progress > lyric.end) {
                 delay = 0;
-            } else if (i == currentLyricIndex) {
+            } else if (lyric.start <= progress && progress <= lyric.end) {
                 delay = 0.042;
             } else {
                 delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.067 * (i - currentLyricIndex + 1.2));
             }
-            const offset = Math.abs(i - currentLyricIndex);
-            let blurRadius = Math.min(offset * blurRatio, 16);
-            currentLyricComponent.setBlur(blurRadius);
             currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
         }
     }
@@ -107,7 +105,7 @@
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
             const currentY = currentLyricComponent.getInfo().y;
-            currentLyricComponent.setBlur(0);
+            scrolling = true;
             currentLyricComponent.stop();
             currentLyricComponent.setY(currentY - deltaY);
         }
@@ -263,7 +261,7 @@
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}
-            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress} />
+            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress} {currentLyricIndex} {scrolling}/>
         {/each}
     </div>
 {/if}
