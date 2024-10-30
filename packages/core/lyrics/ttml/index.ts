@@ -8,7 +8,7 @@ export function parseTTML(text: string) {
     let lyrics: LrcJsonData;
     const lyricLines = ttmlParser(text).lyricLines;
     lyrics = {
-        scripts: lyricLines.map((value: LyricLine, index: number, array: LyricLine[]) => {
+        scripts: lyricLines.map((value: LyricLine, _index: number, _array: LyricLine[]) => {
             let words = value.words.length == 0 ? undefined : value.words;
             if (words) {
                 words = words.map((word) => {
