@@ -1,6 +1,7 @@
 {
     "extends": ["../../tsconfig.base.json"],
     "compilerOptions": {
+        "target": "ES2019",
         "baseUrl": ".",
         "paths": {
             "@core/*": ["./*"]
@@ -13,6 +14,7 @@
         "skipLibCheck": true,
         "sourceMap": true,
         "strict": true,
-        "types": ["bun"]
+        "types": ["bun"],
+        "moduleResolution": "bundler"
     }
 }

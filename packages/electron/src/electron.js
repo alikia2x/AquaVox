@@ -2,7 +2,6 @@ import windowStateManager from 'electron-window-state';
 import { app, BrowserWindow, ipcMain } from 'electron';
 import contextMenu from 'electron-context-menu';
 import serve from 'electron-serve';
-import { join } from 'path';
 
 try {
 	require('electron-reloader')(module);

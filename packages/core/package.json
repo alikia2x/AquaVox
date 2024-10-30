@@ -23,8 +23,7 @@
     "tailwindcss": "^3.4.3",
     "typescript": "^5.4.5",
     "vite": "5.4.6",
-    "vite-plugin-wasm": "^3.3.0",
-    "vitest": "^1.6.0"
+    "vite-plugin-wasm": "^3.3.0"
   },
   "dependencies": {
     "@applemusic-like-lyrics/core": "^0.1.3",

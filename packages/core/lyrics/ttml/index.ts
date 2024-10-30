@@ -2,7 +2,6 @@ import type { LrcJsonData } from '../type';
 import { parseTTML as ttmlParser } from './parser';
 import type { LyricLine } from './ttml-types';
 
-export * from './writer';
 export type * from './ttml-types';
 
 export function parseTTML(text: string) {
