@@ -78,7 +78,7 @@
 {/if}
 
 <div
-    class={'absolute select-none bottom-2 h-60 w-[86vw] left-[7vw] z-10 ' +
+    class={'absolute select-none bottom-12 h-60 w-[86vw] left-[7vw] z-10 ' +
         (hasLyrics
             ? 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]'
             : 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]')}

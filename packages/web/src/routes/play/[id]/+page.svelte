@@ -81,10 +81,46 @@
         });
         localforage.getItem(`${audioId}-cover`, function (err, file) {
             if (file) {
-                const path = URL.createObjectURL(file as File);
-                coverPath.set(path);
+                const img = new Image();
+                img.src = URL.createObjectURL(file as File);
+
+                img.onload = function () {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+
+                    // 计算新的宽度和高度，确保宽度至少为1200px
+                    let newWidth = img.width;
+                    let newHeight = img.height;
+
+                    console.log(newWidth)
+
+                    if (newWidth < 1200) {
+                        newWidth = 1200;
+                        newHeight = (img.height * 1200) / img.width;
+                    }
+
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+
+                    // 绘制放大后的图片到canvas
+                    ctx!.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    // 将canvas内容转换为Blob
+                    canvas.toBlob(function (blob) {
+                        const path = URL.createObjectURL(blob!);
+                        coverPath.set(path);
+                    }, 'image/jpeg'); // 你可以根据需要更改图片格式
+
+                    prepared.push('cover');
+                };
+
+                img.onerror = function () {
+                    console.error('Failed to load image');
+                    prepared.push('cover');
+                };
+            } else {
+                prepared.push('cover');
             }
-            prepared.push('cover');
         });
         localforage.getItem(`${audioId}-file`, function (err, file) {
             if (audioPlayer === null) return;
