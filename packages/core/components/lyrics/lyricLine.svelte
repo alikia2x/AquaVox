@@ -91,7 +91,7 @@
             } else {
                 blurRadius = Math.min(offset * blurRatio, 16);
             }
-            if (scrolling) blurRadius=0;
+            if (scrolling) blurRadius = 0;
             ref.style.filter = `blur(${blurRadius}px)`;
         }
     }
@@ -152,12 +152,12 @@
     }}
     style="transform: translate3d({positionX}px, {positionY}px, 0); transition-property: text-shadow;
     transition-duration: 0.36s; transition-timing-function: ease-out;
-    transform-origin: center left;"
+    transform-origin: center left; font-family: LyricFont, sans-serif;"
 >
     <span
         bind:this={clickMask}
         class="absolute w-[calc(100%-2.5rem)] lg:w-[calc(100%-3rem)] h-full
-        -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)] z-[100] "
+        -translate-x-2 lg:-translate-x-5 -translate-y-5 rounded-lg duration-300 lg:hover:bg-[rgba(255,255,255,.15)] z-[100]"
     >
     </span>
     {#if debugMode}
@@ -166,14 +166,19 @@
         </span>
     {/if}
     {#if line.words !== undefined && line.words.length > 0}
-        <span
-            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 `}
-        >
+        <span class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 `}>
             {#each line.words as word}
                 {#if word.word}
-                    {#each word.word.split("") as chr, i}
+                    {#each word.word.split('') as chr, i}
                         <span
-                            class={(line.start <= progress && progress <= line.end && progress > (word.endTime - word.startTime) * ((i)/word.word.length) + word.startTime ? "opacity-100 text-glow" : "opacity-35") + " inline-block duration-300"}
+                            class={(line.start <= progress &&
+                            progress <= line.end &&
+                            progress > (word.endTime - word.startTime) * (i / word.word.length) + word.startTime
+                                ? 'opacity-100 text-glow'
+                                : 'opacity-35') + ' inline-block ' + 
+                                (((word.endTime - word.startTime) > 0.6) ? '' : 'duration-200')}
+                            style={((word.endTime - word.startTime) < 0.3) ? '' :
+                            `transition-duration: ${(word.endTime - word.startTime) / 1.3}s;`}
                         >
                             {chr}
                         </span>
@@ -183,7 +188,8 @@
         </span>
     {:else}
         <span
-            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 ${line.start <= progress && progress <= line.end ? "opacity-100 text-glow" : "opacity-35"}`}
+            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 
+            ${line.start <= progress && progress <= line.end ? 'opacity-100 text-glow' : 'opacity-35'}`}
         >
             {line.text}
         </span>
@@ -197,13 +203,12 @@
     {/if}
 </div>
 
-
 <style>
     .text-glow {
         text-shadow:
-                0 0 3px #ffffff2c,
-                0 0 6px #ffffff2c,
-                0 15px 30px rgba(0, 0, 0, 0.11),
-                0 5px 15px rgba(0, 0, 0, 0.08);
+            0 0 3px #ffffff2c,
+            0 0 6px #ffffff2c,
+            0 15px 30px rgba(0, 0, 0, 0.11),
+            0 5px 15px rgba(0, 0, 0, 0.08);
     }
 </style>

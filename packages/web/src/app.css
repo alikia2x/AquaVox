@@ -28,7 +28,13 @@ h2 {
 
 body,
 html {
-  position: fixed;
-  overflow: hidden;
-  overscroll-behavior: none;
+    position: fixed;
+    overflow: hidden;
+    overscroll-behavior: none;
+}
+
+@font-face {
+    font-family: 'LyricFont';
+    src: url('/font.otf') format('opentype');
+    font-weight: 600; /* Semibold weight */
 }
