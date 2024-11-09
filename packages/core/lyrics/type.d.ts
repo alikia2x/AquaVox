@@ -1,8 +1,11 @@
-import type { ParserScriptItem } from "./lrc/type";
-
-export interface ScriptItem extends ParserScriptItem {
+export interface ScriptItem{
     end: number;
     chorus?: string;
+    start: number;
+    text: string;
+    words?: LyricWord[];
+    translation?: string;
+    singer?: string;
 }
 
 export interface LyricWord {
@@ -12,7 +15,7 @@ export interface LyricWord {
     emptyBeat?: number;
 }
 
-export interface LrcMetaData {
+export interface LyricMetadata {
     ar?: string;
     ti?: string;
     al?: string;
@@ -23,14 +26,8 @@ export interface LrcMetaData {
     ve?: string;
 }
 
-export interface ParsedLrc extends LrcMetaData {
-    scripts?: ParserScriptItem[];
-
-    [key: string]: any;
-}
-
-export interface LrcJsonData extends LrcMetaData {
-    scripts?: ScriptItem[];
+export interface LyricData extends LyricMetadata {
+scripts?: ScriptItem[];
 
     [key: string]: any;
 }
