@@ -46,7 +46,6 @@
         height: 100%;
         object-fit: cover;
         z-index: -1;
-        overflow: hidden;
     }
     canvas {
         position: relative;
@@ -55,6 +54,6 @@
         height: 100%;
         opacity: 0;
         transition: .45s;
-        filter: brightness(0.8);
+        filter: saturate(1.2);
     }
 </style>

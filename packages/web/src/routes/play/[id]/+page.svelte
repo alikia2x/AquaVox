@@ -7,13 +7,12 @@
     import extractFileName from '@core/utils/extractFileName';
     import localforage from 'localforage';
     import { writable } from 'svelte/store';
-    import lrcParser from '@core/lyrics/lrc/parser';
-    import type { LrcJsonData } from '@core/lyrics/type';
+    import { type LyricData } from "@alikia/aqualyrics";
     import userAdjustingProgress from '@core/state/userAdjustingProgress';
     import type { IAudioMetadata } from 'music-metadata-browser';
     import { onMount } from 'svelte';
     import progressBarRaw from '@core/state/progressBarRaw';
-    import { parseTTML } from '@core/lyrics/ttml';
+    import { parseTTML, parseLRC } from '@alikia/aqualyrics';
     import NewLyrics from '@core/components/lyrics/newLyrics.svelte';
 
     const audioId = $page.params.id;
@@ -27,7 +26,7 @@
     let paused: boolean = true;
     let launched = false;
     let prepared: string[] = [];
-    let originalLyrics: LrcJsonData;
+    let originalLyrics: LyricData;
     let lyricsText: string[] = [];
     let hasLyrics: boolean;
     const coverPath = writable('');
@@ -139,12 +138,13 @@
                 f.text().then((lr) => {
                     if (f.name.endsWith('.ttml')) {
                         originalLyrics = parseTTML(lr);
+                        console.log(originalLyrics);
                         for (const line of originalLyrics.scripts!) {
                             lyricsText.push(line.text);
                         }
                         hasLyrics = true;
                     } else if (f.name.endsWith('.lrc')) {
-                        originalLyrics = lrcParser(lr);
+                        originalLyrics = parseLRC(lr);
                         if (!originalLyrics.scripts) return;
                         for (const line of originalLyrics.scripts) {
                             lyricsText.push(line.text);

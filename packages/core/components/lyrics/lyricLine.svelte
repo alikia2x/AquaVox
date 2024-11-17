@@ -1,6 +1,6 @@
 <script lang="ts">
     import createSpring from '@core/graphics/spring';
-    import type { ScriptItem } from '@core/lyrics/type';
+    import type { LyricWord, ScriptItem } from '@core/lyrics/type';
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
 
@@ -134,6 +134,53 @@
     };
 
     export const getRef = () => ref;
+
+    // Calculate if the current character should be highlighted based on progress
+    const isCharacterHighlighted = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
+        const charProgress = getCharacterProgress(word, charIndex);
+        return line.start <= progress &&
+            progress <= line.end &&
+            progress > charProgress;
+    };
+
+    // Get the progress timing for a specific character in a word
+    const getCharacterProgress = (word: LyricWord, charIndex: number) => {
+        const { startTime, endTime } = word;
+        const wordDuration = endTime - startTime;
+        return wordDuration * (charIndex / word.word.length) + startTime;
+    };
+
+    // Calculate the transition duration for a character
+    const getTransitionDuration = (word: LyricWord, charIndex: number) => {
+        const { startTime, endTime } = word;
+        const wordDuration = endTime - startTime;
+        const charDuration = wordDuration * ((charIndex + 1) / word.word.length);
+
+        // If duration is less than 0.6s, we'll use CSS class with fixed duration
+        if (charDuration < 0.6) {
+            return null;
+        }
+
+        // Otherwise, calculate custom duration
+        return charDuration / 1.6;
+    };
+
+    // Generate the CSS classes for a character
+    const getCharacterClasses = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
+        const baseClasses = 'inline-block';
+        const opacityClass = isCharacterHighlighted(line, word, charIndex, progress)
+            ? 'opacity-100 text-glow'
+            : 'opacity-35';
+
+        return `${baseClasses} ${opacityClass}`.trim();
+    };
+
+    // Generate the style string for a character
+    const getCharacterStyle = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
+        const duration = getTransitionDuration(word, charIndex);
+        const progressAtCurrentLine = progress <= line.end;
+        return (duration && progressAtCurrentLine) ? `transition-duration: ${duration}s;` : 'transition-duration: 200ms;';
+    };
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -150,8 +197,7 @@
     on:touchstart={() => {
         clickMask.style.backgroundColor = 'rgba(255,255,255,.3)';
     }}
-    style="transform: translate3d({positionX}px, {positionY}px, 0); transition-property: text-shadow;
-    transition-duration: 0.36s; transition-timing-function: ease-out;
+    style="transform: translate3d({positionX}px, {positionY}px, 0);
     transform-origin: center left; font-family: LyricFont, sans-serif;"
 >
     <span
@@ -161,7 +207,7 @@
     >
     </span>
     {#if debugMode}
-        <span class="text-lg absolute -translate-y-7">
+        <span class="text-white text-lg absolute -translate-y-7">
             {index}: duration: {(line.end - line.start).toFixed(3)}, {line.start.toFixed(3)}~{line.end.toFixed(3)}
         </span>
     {/if}
@@ -171,14 +217,8 @@
                 {#if word.word}
                     {#each word.word.split('') as chr, i}
                         <span
-                            class={(line.start <= progress &&
-                            progress <= line.end &&
-                            progress > (word.endTime - word.startTime) * (i / word.word.length) + word.startTime
-                                ? 'opacity-100 text-glow'
-                                : 'opacity-35') + ' inline-block ' + 
-                                (((word.endTime - word.startTime) > 0.6) ? '' : 'duration-200')}
-                            style={((word.endTime - word.startTime) < 0.3) ? '' :
-                            `transition-duration: ${(word.endTime - word.startTime) / 1.3}s;`}
+                            class={getCharacterClasses(line, word, i, progress)}
+                            style={getCharacterStyle(line, word, i, progress)}
                         >
                             {chr}
                         </span>
@@ -188,7 +228,7 @@
         </span>
     {:else}
         <span
-            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200 
+            class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 duration-200
             ${line.start <= progress && progress <= line.end ? 'opacity-100 text-glow' : 'opacity-35'}`}
         >
             {line.text}
@@ -205,10 +245,9 @@
 
 <style>
     .text-glow {
-        text-shadow:
-            0 0 3px #ffffff2c,
-            0 0 6px #ffffff2c,
-            0 15px 30px rgba(0, 0, 0, 0.11),
-            0 5px 15px rgba(0, 0, 0, 0.08);
+        text-shadow: 0 0 3px #ffffff2c,
+        0 0 6px #ffffff2c,
+        0 15px 30px rgba(0, 0, 0, 0.11),
+        0 5px 15px rgba(0, 0, 0, 0.08);
     }
 </style>

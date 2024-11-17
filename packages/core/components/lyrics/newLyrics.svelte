@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { LrcJsonData, ScriptItem } from '@core/lyrics/type';
+    import { type ScriptItem, type LyricData } from '@alikia/aqualyrics';
     import { onMount } from 'svelte';
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
@@ -15,7 +15,7 @@
     document.body.style.overflow = 'hidden';
 
     // Props
-    export let originalLyrics: LrcJsonData;
+    export let originalLyrics: LyricData;
     export let progress: number;
     export let player: HTMLAudioElement | null;
 
@@ -243,13 +243,32 @@
         player.currentTime = originalLyrics.scripts[lyricIndex].start;
         player.play();
     }
+
+    let lastFPSTime = performance.now();
+    let frameCount = 0;
+    let fps = 0;
+
+    function calculateFPS(t: number) {
+        // 计算时间差
+        const deltaTime = t - lastFPSTime;
+        frameCount ++;
+        if (frameCount % 5 == 0) {
+            fps = 1000 / deltaTime;
+        }
+        lastFPSTime = t;
+        // 请求下一帧
+        requestAnimationFrame(calculateFPS);
+    }
+
+    // 开始检测帧率
+    requestAnimationFrame(calculateFPS);
 </script>
 
 <svelte:window on:keydown={onKeyDown} />
 
 {#if debugMode}
-    <span class="text-lg absolute">
-        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}
+    <span class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg right-0 font-mono">
+        {fps.toFixed(1)}fps, progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}
     </span>
 {/if}
 

@@ -47,7 +47,6 @@ export class Spring {
         return (
             Math.abs(this.targetPosition - this.currentPosition) < 0.01 &&
             this.getV(this.currentTime) < 0.01 &&
-            this.getV2(this.currentTime) < 0.01 &&
             this.queueParams === undefined &&
             this.queuePosition === undefined
         );
