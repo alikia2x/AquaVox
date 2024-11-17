@@ -3,6 +3,7 @@
     import { onMount } from 'svelte';
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
+    import { createRule } from 'eslint-plugin-svelte/lib/utils';
 
     // constants
     const viewportHeight = document.documentElement.clientHeight;
@@ -168,6 +169,29 @@
         lyricsContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
 
         scrollEventAdded = true;
+    });
+
+    let lastTriggered = $state(0);
+    let lastEventLyricIndex = $state(0);
+    let lastEventProgress = $state(0);
+    $effect(() => {
+         const progressDelta = progress - lastEventProgress;
+         const deltaInRange = 0 <= progressDelta && progressDelta <= 0.15;
+         const deltaTooBig = progressDelta > 0.15;
+         const deltaIsNegative = progressDelta < 0;
+         const lyricChanged = currentLyricIndex !== lastEventLyricIndex;
+         const lyricIndexDeltaTooBig = Math.abs(currentLyricIndex - lastEventLyricIndex) > 1;
+         if (lyricChanged && !lyricIndexDeltaTooBig && deltaInRange) {
+             console.log("Event: regular move");
+         }
+         else if (deltaTooBig && lyricChanged) {
+             console.log("Event: seek forward");
+         }
+         else if (deltaIsNegative && lyricChanged) {
+            console.log("Event: seek backward");
+         }
+         lastEventLyricIndex = currentLyricIndex;
+         lastEventProgress = progress;
     });
 
     $effect(() => {

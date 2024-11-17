@@ -5,7 +5,7 @@
     import type { Spring } from '@core/graphics/spring/spring';
 
     const viewportWidth = document.documentElement.clientWidth;
-    const blurRatio = viewportWidth > 640 ? 1 : 1.4;
+    const blurRatio = viewportWidth > 640 ? 1.2 : 1.4;
 
     export let line: ScriptItem;
     export let index: number;
@@ -21,7 +21,7 @@
     let time = 0;
     let positionX: number = 0;
     let positionY: number = 0;
-    let opacity = 1;
+    let blur = 0;
     let stopped = false;
     let lastPosX: number | undefined = undefined;
     let lastPosY: number | undefined = undefined;
@@ -75,11 +75,6 @@
         positionY = pos;
     };
 
-    export const setCurrent = (isCurrent: boolean) => {
-        isCurrentLyric = isCurrent;
-        opacity = isCurrent ? 1 : 0.36;
-    };
-
     $: {
         if (ref && ref.style) {
             let blurRadius = 0;
@@ -92,7 +87,7 @@
                 blurRadius = Math.min(offset * blurRatio, 16);
             }
             if (scrolling) blurRadius = 0;
-            ref.style.filter = `blur(${blurRadius}px)`;
+            blur = blurRadius
         }
     }
 
@@ -198,7 +193,7 @@
         clickMask.style.backgroundColor = 'rgba(255,255,255,.3)';
     }}
     style="transform: translate3d({positionX}px, {positionY}px, 0);
-    transform-origin: center left; font-family: LyricFont, sans-serif;"
+    transform-origin: center left; font-family: LyricFont, sans-serif; filter: blur({blur}px)"
 >
     <span
         bind:this={clickMask}
