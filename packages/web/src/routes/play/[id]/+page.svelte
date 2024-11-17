@@ -87,11 +87,8 @@
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext('2d');
 
-                    // 计算新的宽度和高度，确保宽度至少为1200px
                     let newWidth = img.width;
                     let newHeight = img.height;
-
-                    console.log(newWidth)
 
                     if (newWidth < 1200) {
                         newWidth = 1200;
@@ -101,14 +98,12 @@
                     canvas.width = newWidth;
                     canvas.height = newHeight;
 
-                    // 绘制放大后的图片到canvas
                     ctx!.drawImage(img, 0, 0, newWidth, newHeight);
 
-                    // 将canvas内容转换为Blob
                     canvas.toBlob(function (blob) {
                         const path = URL.createObjectURL(blob!);
                         coverPath.set(path);
-                    }, 'image/jpeg'); // 你可以根据需要更改图片格式
+                    }, 'image/jpeg');
 
                     prepared.push('cover');
                 };

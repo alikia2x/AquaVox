@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { type ScriptItem, type LyricData } from '@alikia/aqualyrics';
+    import { type LyricData, type ScriptItem } from '@alikia/aqualyrics';
     import { onMount } from 'svelte';
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
@@ -15,38 +15,34 @@
     document.body.style.overflow = 'hidden';
 
     // Props
-    export let originalLyrics: LyricData;
-    export let progress: number;
-    export let player: HTMLAudioElement | null;
+    let { originalLyrics, progress, player } : {
+        originalLyrics: LyricData,
+        progress: number,
+        player: HTMLAudioElement | null
+    } = $props();
 
     // States
-    let lyricLines: ScriptItem[] = [];
-    let lyricExists = false;
-    let lyricsContainer: HTMLDivElement | null;
-    let debugMode = false;
-    let nextUpdate = 0;
-    let lastProgress = 0;
-    let showTranslation = false;
-    let scrollEventAdded = false;
-    let scrolling = false;
-    let scrollingTimeout: Timer;
-    let lastY: number; // For tracking touch movements
-    let lastTime: number; // For tracking time between touch moves
-    let velocityY = 0; // Vertical scroll velocity
-    let inertiaFrame: number; // For storing the requestAnimationFrame reference
+    let lyricLines: ScriptItem[] = $state([]);
+    let lyricsContainer: HTMLDivElement | null = $state(null);
+    let debugMode = $state(false);
+    let nextUpdate = $state(0);
+    let lastProgress = $state(0);
+    let showTranslation = $state(false);
+    let scrollEventAdded = $state(false);
+    let scrolling = $state(false);
+    let scrollingTimeout: Timer | null = $state(null);
+    let lastY: number = $state(0); // For tracking touch movements
+    let lastTime: number = $state(0); // For tracking time between touch moves
+    let velocityY = $state(0); // Vertical scroll velocity
+    let inertiaFrame: number = $state(0); // For storing the requestAnimationFrame reference
 
     // References to lyric elements
-    let lyricElements: HTMLDivElement[] = [];
-    let lyricComponents: LyricLine[] = [];
-    let lyricTopList: number[] = [];
+    let lyricElements: HTMLDivElement[] = $state([]);
+    let lyricComponents: LyricLine[] = $state([]);
+    let lyricTopList: number[] = $state([]);
 
-    let currentLyricIndex: number;
-
-    $: getLyricIndex = createLyricsSearcher(originalLyrics);
-
-    $: {
-        currentLyricIndex = getLyricIndex(progress);
-    }
+    let getLyricIndex = $derived(createLyricsSearcher(originalLyrics));
+    let currentLyricIndex = $derived(getLyricIndex(progress));
 
     function initLyricComponents() {
         initLyricTopList();
@@ -88,18 +84,17 @@
         }
     }
 
-    $: {
-        if (originalLyrics && originalLyrics.scripts) {
-            lyricExists = true;
-            lyricLines = originalLyrics.scripts!;
-        }
-    }
-
-    $: {
-        if (lyricComponents.length > 0) {
+    $effect(() => {
+        if (!originalLyrics || !originalLyrics.scripts) return;
+        lyricLines = originalLyrics.scripts!;
+    });
+    let initialized = $state(false);
+    $effect(() => {
+        if (lyricComponents.length > 0 && !initialized) {
             initLyricComponents();
+            initialized = true;
         }
-    }
+    });
 
     function handleScroll(deltaY: number) {
         for (let i = 0; i < lyricElements.length; i++) {
@@ -154,52 +149,50 @@
         inertiaScroll();
     }
 
-    $: {
-        if (lyricsContainer && !scrollEventAdded) {
-            // Wheel event for desktop
-            lyricsContainer.addEventListener(
-                'wheel',
-                (e) => {
-                    e.preventDefault();
-                    const deltaY = e.deltaY;
-                    handleScroll(deltaY);
-                },
-                { passive: false }
-            );
+    $effect(() => {
+        if (!lyricsContainer || scrollEventAdded) return;
+        // Wheel event for desktop
+        lyricsContainer.addEventListener(
+            'wheel',
+            (e) => {
+                e.preventDefault();
+                const deltaY = e.deltaY;
+                handleScroll(deltaY);
+            },
+            { passive: false }
+        );
 
-            // Touch events for mobile
-            lyricsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
-            lyricsContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
-            lyricsContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
+        // Touch events for mobile
+        lyricsContainer.addEventListener('touchstart', handleTouchStart, { passive: true });
+        lyricsContainer.addEventListener('touchmove', handleTouchMove, { passive: false });
+        lyricsContainer.addEventListener('touchend', handleTouchEnd, { passive: true });
 
-            scrollEventAdded = true;
+        scrollEventAdded = true;
+    });
+
+    $effect(() => {
+        if (!lyricsContainer || lyricComponents.length < 0) return;
+        if (progress >= nextUpdate - 0.5 && !scrolling) {
+            computeLayout();
         }
-    }
-
-    $: {
-        if (lyricsContainer && lyricComponents.length > 0) {
-            if (progress >= nextUpdate - 0.5 && !scrolling) {
-                computeLayout();
-            }
-            if (Math.abs(lastProgress - progress) > 0.5) {
-                scrolling = false;
-            }
-            if (lastProgress - progress > 0) {
-                computeLayout();
-                nextUpdate = progress;
+        if (Math.abs(lastProgress - progress) > 0.5) {
+            scrolling = false;
+        }
+        if (lastProgress - progress > 0) {
+            computeLayout();
+            nextUpdate = progress;
+        } else {
+            const lyricLength = originalLyrics.scripts!.length;
+            const currentEnd = originalLyrics.scripts![currentLyricIndex].end;
+            const nextStart = originalLyrics.scripts![Math.min(currentLyricIndex + 1, lyricLength - 1)].start;
+            if (currentEnd !== nextStart) {
+                nextUpdate = currentEnd;
             } else {
-                const lyricLength = originalLyrics.scripts!.length;
-                const currentEnd = originalLyrics.scripts![currentLyricIndex].end;
-                const nextStart = originalLyrics.scripts![Math.min(currentLyricIndex + 1, lyricLength - 1)].start;
-                if (currentEnd !== nextStart) {
-                    nextUpdate = currentEnd;
-                } else {
-                    nextUpdate = nextStart;
-                }
+                nextUpdate = nextStart;
             }
         }
         lastProgress = progress;
-    }
+    });
 
     // $: {
     //     for (let i = 0; i < lyricElements.length; i++) {
@@ -243,32 +236,14 @@
         player.currentTime = originalLyrics.scripts[lyricIndex].start;
         player.play();
     }
-
-    let lastFPSTime = performance.now();
-    let frameCount = 0;
-    let fps = 0;
-
-    function calculateFPS(t: number) {
-        // 计算时间差
-        const deltaTime = t - lastFPSTime;
-        frameCount ++;
-        if (frameCount % 5 == 0) {
-            fps = 1000 / deltaTime;
-        }
-        lastFPSTime = t;
-        // 请求下一帧
-        requestAnimationFrame(calculateFPS);
-    }
-
-    // 开始检测帧率
-    requestAnimationFrame(calculateFPS);
 </script>
 
-<svelte:window on:keydown={onKeyDown} />
+<!--<svelte:window on:keydown={onKeyDown} />-->
 
 {#if debugMode}
-    <span class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg right-0 font-mono">
-        {fps.toFixed(1)}fps, progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}
+    <span
+        class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg right-0 font-mono">
+        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}
     </span>
 {/if}
 

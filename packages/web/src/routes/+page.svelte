@@ -3,6 +3,8 @@
     import getVersion from '@core/utils/getVersion';
     import toHumanSize from '@core/utils/humanSize';
     import localforage from '@core/utils/storage';
+    import { goto } from '$app/navigation';
+
     interface Song {
         name: string;
         singer?: string;
@@ -58,7 +60,9 @@
     <div>
         <ul class="mt-4 relative w-full">
             {#each idList as id}
-                <a class="!no-underline !text-black dark:!text-white" href={`/play/${id}`}>
+                <!-- svelte-ignore a11y-click-events-have-key-events -->
+                <!-- svelte-ignore a11y-no-static-element-interactions -->
+                <div class="!no-underline !text-black dark:!text-white" onclick={() => goto(`/play/${id}`)}>
                     <li
                         class="relative my-4 p-4 duration-150 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 rounded-lg"
                     >
@@ -73,7 +77,7 @@
                             />
                         {/if}
                     </li>
-                </a>
+                </div>
             {/each}
         </ul>
     </div>
@@ -83,7 +87,7 @@
     </p>
     <a href="/import">导入音乐</a> <br />
     <button
-        on:click={() => window.confirm('确定要删除本地数据库中所有内容吗？') && clear()}
+        onclick={() => window.confirm('确定要删除本地数据库中所有内容吗？') && clear()}
         class="text-white bg-red-500 px-4 py-2 mt-4 rounded-md">一键清除</button
     >
     <h2 class="mt-4"><a href="/database/">音乐数据库</a></h2>
