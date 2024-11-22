@@ -3,9 +3,11 @@
     import type { LyricWord, ScriptItem } from '@core/lyrics/type';
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
+    import userAdjustingProgress from '@core/state/userAdjustingProgress';
 
     const viewportWidth = document.documentElement.clientWidth;
     const blurRatio = viewportWidth > 640 ? 1.2 : 1.4;
+    const scrollDuration = 0.2;
 
     export let line: ScriptItem;
     export let index: number;
@@ -23,6 +25,10 @@
     let positionY: number = 0;
     let blur = 0;
     let stopped = false;
+    let we_are_scrolling = false;
+    let scrollTarget: number | undefined = undefined;
+    let scrollFrom: number | undefined = undefined;
+    let scrollingStartTime: number | undefined = undefined;
     let lastPosX: number | undefined = undefined;
     let lastPosY: number | undefined = undefined;
     let lastUpdateY: number | undefined = undefined;
@@ -39,7 +45,7 @@
         time = (new Date().getTime() - lastUpdateY) / 1000;
         springY.update(time);
         positionY = springY.getCurrentPosition();
-        if (!springY.arrived() && !stopped) {
+        if (!springY.arrived() && !stopped && !we_are_scrolling) {
             requestAnimationFrame(updateY);
         }
         lastUpdateY = new Date().getTime();
@@ -87,6 +93,7 @@
                 blurRadius = Math.min(offset * blurRatio, 16);
             }
             if (scrolling) blurRadius = 0;
+            if ($userAdjustingProgress) blurRadius = 0;
             blur = blurRadius
         }
     }
@@ -106,6 +113,26 @@
         lastPosX = pos.x;
         lastPosY = pos.y;
     };
+
+    function updateScroll(timestamp: number) {
+        const elapsedTime = (new Date().getTime() - scrollingStartTime!) / 1000;
+        const percentage = Math.min(elapsedTime / scrollDuration, 1);
+        positionY = scrollFrom! + (scrollTarget! - scrollFrom!) * percentage;
+        if (percentage < 1) {
+            requestAnimationFrame(updateScroll);
+        }
+    }
+
+    export const scrollTo = (targetY: number) => {
+        scrollFrom = positionY;
+        scrollTarget = targetY;
+        scrollingStartTime = new Date().getTime();
+        we_are_scrolling = true;
+        requestAnimationFrame(updateScroll);
+        springY!.setPosition(targetY);
+        we_are_scrolling = false;
+    };
+
 
     export const getInfo = () => {
         return {

@@ -3,7 +3,7 @@
     import { onMount } from 'svelte';
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
-    import { createRule } from 'eslint-plugin-svelte/lib/utils';
+    import userAdjustingProgress from '@core/state/userAdjustingProgress';
 
     // constants
     const viewportHeight = document.documentElement.clientHeight;
@@ -48,7 +48,8 @@
     function initLyricComponents() {
         initLyricTopList();
         for (let i = 0; i < lyricComponents.length; i++) {
-            lyricComponents[i].init({ x: 0, y: lyricTopList[i] });
+            const currentLyric = lyricComponents[i];
+            currentLyric.init({ x: 0, y: lyricTopList[i] });
         }
     }
 
@@ -83,6 +84,16 @@
             }
             currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
         }
+    }
+
+    function seekForward() {
+        if (!originalLyrics.scripts) return;
+        const relativeOrigin = lyricTopList[currentLyricIndex] - currentLyricTop;
+        for (let i = 0; i < lyricElements.length; i++) {
+            const currentLyricComponent = lyricComponents[i];
+            currentLyricComponent.scrollTo(lyricTopList[i] - relativeOrigin);
+        }
+        lastSeekForward = new Date().getTime();
     }
 
     $effect(() => {
@@ -171,68 +182,39 @@
         scrollEventAdded = true;
     });
 
-    let lastTriggered = $state(0);
     let lastEventLyricIndex = $state(0);
     let lastEventProgress = $state(0);
+    let lastSeekForward = $state(0);
     $effect(() => {
-         const progressDelta = progress - lastEventProgress;
-         const deltaInRange = 0 <= progressDelta && progressDelta <= 0.15;
-         const deltaTooBig = progressDelta > 0.15;
-         const deltaIsNegative = progressDelta < 0;
-         const lyricChanged = currentLyricIndex !== lastEventLyricIndex;
-         const lyricIndexDeltaTooBig = Math.abs(currentLyricIndex - lastEventLyricIndex) > 1;
-         if (lyricChanged && !lyricIndexDeltaTooBig && deltaInRange) {
-             console.log("Event: regular move");
-         }
-         else if (deltaTooBig && lyricChanged) {
-             console.log("Event: seek forward");
-         }
-         else if (deltaIsNegative && lyricChanged) {
-            console.log("Event: seek backward");
-         }
-         lastEventLyricIndex = currentLyricIndex;
-         lastEventProgress = progress;
-    });
+        const progressDelta = progress - lastEventProgress;
+        const deltaInRange = 0 <= progressDelta && progressDelta <= 0.15;
+        const deltaTooBig = progressDelta > 0.15;
+        const deltaIsNegative = progressDelta < 0;
+        const lyricChanged = currentLyricIndex !== lastEventLyricIndex;
+        const lyricIndexDeltaTooBig = Math.abs(currentLyricIndex - lastEventLyricIndex) > 1;
 
-    $effect(() => {
-        if (!lyricsContainer || lyricComponents.length < 0) return;
-        if (progress >= nextUpdate - 0.5 && !scrolling) {
+        lastEventLyricIndex = currentLyricIndex;
+        lastEventProgress = progress;
+        if (!lyricChanged) return;
+        if (!lyricIndexDeltaTooBig && deltaInRange) {
+            console.log("Event: regular move");
+            console.log(new Date().getTime() , lastSeekForward);
             computeLayout();
         }
-        if (Math.abs(lastProgress - progress) > 0.5) {
-            scrolling = false;
-        }
-        if (lastProgress - progress > 0) {
-            computeLayout();
-            nextUpdate = progress;
-        } else {
-            const lyricLength = originalLyrics.scripts!.length;
-            const currentEnd = originalLyrics.scripts![currentLyricIndex].end;
-            const nextStart = originalLyrics.scripts![Math.min(currentLyricIndex + 1, lyricLength - 1)].start;
-            if (currentEnd !== nextStart) {
-                nextUpdate = currentEnd;
-            } else {
-                nextUpdate = nextStart;
+        else if ($userAdjustingProgress) {
+            if (deltaTooBig && lyricChanged) {
+                console.log("Event: seek forward");
+                seekForward();
+            } else if (deltaIsNegative && lyricChanged) {
+                console.log("Event: seek backward");
+                seekForward();
             }
         }
-        lastProgress = progress;
+        else {
+            console.log("Event: regular move");
+            computeLayout();
+        }
     });
-
-    // $: {
-    //     for (let i = 0; i < lyricElements.length; i++) {
-    //         const s = originalLyrics.scripts![i].start;
-    //         const t = originalLyrics.scripts![i].end;
-    //         // Explain:
-    //         // The `currentLyricIndex` is also used for locating & layout computing,
-    //         // so when the current progress is in the interlude between two lyrics,
-    //         // `currentLyricIndex` still needs to have a valid value to ensure that
-    //         // the style and scrolling position are calculated correctly.
-    //         // But in that situation, the “current lyric index” does not exist.
-    //         const isCurrent = i == currentLyricIndex && s <= progress && progress <= t;
-    //         const currentLyricComponent = lyricComponents[i];
-    //         currentLyricComponent.setCurrent(isCurrent);
-    //     }
-    // }
 
     onMount(() => {
         // Initialize
@@ -258,16 +240,17 @@
     function lyricClick(lyricIndex: number) {
         if (player === null || originalLyrics.scripts === undefined) return;
         player.currentTime = originalLyrics.scripts[lyricIndex].start;
+        userAdjustingProgress.set(false);
         player.play();
     }
 </script>
 
-<!--<svelte:window on:keydown={onKeyDown} />-->
+<svelte:window on:keydown={onKeyDown} />
 
 {#if debugMode}
     <span
         class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg right-0 font-mono">
-        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}
+        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}, uap: {$userAdjustingProgress}
     </span>
 {/if}
 
