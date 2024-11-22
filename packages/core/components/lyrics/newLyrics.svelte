@@ -16,10 +16,11 @@
     document.body.style.overflow = 'hidden';
 
     // Props
-    let { originalLyrics, progress, player } : {
+    let { originalLyrics, progress, player, showInteractiveBox } : {
         originalLyrics: LyricData,
         progress: number,
-        player: HTMLAudioElement | null
+        player: HTMLAudioElement | null,
+        showInteractiveBox: boolean
     } = $props();
 
     // States
@@ -195,10 +196,10 @@
 
         lastEventLyricIndex = currentLyricIndex;
         lastEventProgress = progress;
-        if (!lyricChanged) return;
+        if (!lyricChanged || scrolling) return;
         if (!lyricIndexDeltaTooBig && deltaInRange) {
             console.log("Event: regular move");
-            console.log(new Date().getTime() , lastSeekForward);
+            console.log(new Date().getTime(), lastSeekForward);
             computeLayout();
         }
         else if ($userAdjustingProgress) {
@@ -257,8 +258,11 @@
 {#if originalLyrics && originalLyrics.scripts}
     <div
         class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12
-        lg:px-[7.5rem] xl:left-[46vw] xl:px-[3vw] h-[calc(100vh-17rem)] xl:h-screen font-sans
+        lg:px-[7.5rem] xl:left-[46vw] xl:px-[3vw] xl:h-screen font-sans
         text-left no-scrollbar z-[1] pt-16 overflow-hidden"
+        style={`mask: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 7%, rgba(0, 0, 0, 1) 95%,
+        rgba(0, 0, 0, 0) 100%);
+        height: ${showInteractiveBox ? "calc(100vh - 21rem)" : "calc(100vh - 7rem)"}`}
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}

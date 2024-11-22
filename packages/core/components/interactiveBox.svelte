@@ -18,6 +18,9 @@
 
     export let hasLyrics: boolean;
 
+    export let showInteractiveBox: boolean;
+    export let setShowingInteractiveBox: Function;
+
     let progressBar: HTMLDivElement;
     let volumeBar: HTMLDivElement;
     let showInfoTop: boolean = false;
@@ -25,6 +28,13 @@
     let songInfoTopContainer: HTMLDivElement;
     let songInfoTopContent: HTMLSpanElement;
     let userAdjustingVolume = false;
+    let lastTouchClientX = 0;
+
+    setTimeout(() => {
+       if (screen.width < 728) {
+           setShowingInteractiveBox(false);
+       }
+    }, 3000);
 
     const mql = window.matchMedia('(max-width: 1280px)');
 
@@ -68,6 +78,30 @@
     $: {
         showInfoTop = mql.matches && hasLyrics;
     }
+
+    window.addEventListener("mousemove", (event) => {
+        if ($userAdjustingProgress) {
+            adjustDisplayProgress(event.offsetX / progressBar.getBoundingClientRect().width);
+        }
+    });
+    window.addEventListener("mouseup", (event) => {
+        if ($userAdjustingProgress) {
+            userAdjustingProgress.set(false);
+            adjustProgress(event.offsetX / progressBar.getBoundingClientRect().width);
+        }
+    });
+    window.addEventListener("touchmove", (event) => {
+        if ($userAdjustingProgress) {
+            adjustDisplayProgress((event.touches[0].clientX - progressBar.getBoundingClientRect().left) / progressBar.getBoundingClientRect().width);
+            lastTouchClientX = event.touches[0].clientX;
+        }
+    });
+    window.addEventListener("touchend", (event) => {
+        if ($userAdjustingProgress) {
+            adjustProgress((lastTouchClientX - progressBar.getBoundingClientRect().left) / progressBar.getBoundingClientRect().width);
+            userAdjustingProgress.set(false);
+        }
+    });
 </script>
 
 {#if showInfoTop}
@@ -78,11 +112,14 @@
 {/if}
 
 <div
-    class={'absolute select-none bottom-12 h-60 w-[86vw] left-[7vw] z-10 ' +
+    class={'absolute select-none bottom-12 h-60 w-[86vw] left-[7vw] duration-500 z-10 ' +
         (hasLyrics
             ? 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]'
-            : 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]')}
+            : 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]') + ' ' +
+             (showInteractiveBox ? 'opacity-100' : 'opacity-0')}
+    style={`z-index: ${showInteractiveBox ? "0" : "50"}`}
 >
+
     {#if !showInfoTop}
         <div class="song-info">
             <div class="song-info-regular {isInfoTopOverflowing ? 'animate' : ''}" bind:this={songInfoTopContainer}>
@@ -94,6 +131,13 @@
             <span class="song-author text-shadow-lg">{singer}</span>
         </div>
     {/if}
+
+    <div class="absolute w-full h-2/3 bottom-0" style={`z-index: ${showInteractiveBox ? "0" : "50"}`} on:click={() => {
+        setShowingInteractiveBox(true);
+        setTimeout(() => {
+            setShowingInteractiveBox(false);
+        }, 5000);
+    }}></div>
 
     <div class="progress top-16">
         <div class="time-indicator text-shadow-md time-current">
@@ -107,23 +151,14 @@
             class="progress-bar shadow-md"
             on:keydown
             on:keyup
+            on:click={(e) => {
+                progressBarOnClick(e);
+            }}
             on:mousedown={() => {
                 userAdjustingProgress.set(true);
             }}
-            on:mousemove={(e) => {
-                if ($userAdjustingProgress) {
-                    adjustDisplayProgress(e.offsetX / progressBar.getBoundingClientRect().width);
-                }
-            }}
-            on:mouseup={(e) => {
-                const offsetX = e.offsetX;
-                progressBarOnClick(e);
-                // Q: why it needs delay?
-                // A: I do not know.
-                setTimeout(()=> {
-                    userAdjustingProgress.set(false);
-                    progressBarMouseUp(offsetX);
-                }, 50);
+            on:touchstart={() => {
+                userAdjustingProgress.set(true);
             }}
             role="slider"
             tabindex="0"

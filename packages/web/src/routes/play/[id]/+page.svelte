@@ -31,6 +31,7 @@
     let hasLyrics: boolean;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
+    let showInteractiveBox = true;
 
     function setMediaSession() {
         if ('mediaSession' in navigator === false) return;
@@ -196,6 +197,10 @@
         }
     }
 
+    function setShowingInteractiveBox(showing: boolean) {
+        showInteractiveBox = showing;
+    }
+
     $: {
         clearInterval(mainInterval);
         mainInterval = setInterval(() => {
@@ -240,9 +245,11 @@
     {adjustVolume}
     {adjustDisplayProgress}
     {hasLyrics}
+    {showInteractiveBox}
+    {setShowingInteractiveBox}
 />
 
-<NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer}/>
+<NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer} {showInteractiveBox} />
 
 <audio
     bind:this={audioPlayer}

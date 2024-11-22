@@ -1,0 +1,16 @@
+{
+  "orientation": "portrait",
+  "name": "AquaVox",
+  "short_name": "AquaVox",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#000000",
+  "description": "A readable Hacker News app",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
