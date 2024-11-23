@@ -1,6 +1,6 @@
 {
   "name": "aquavox",
-  "version": "2.9.4",
+  "version": "2.9.5",
   "private": false,
   "module": "index.ts",
   "type": "module",

@@ -151,7 +151,7 @@
 
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <div class={"absolute w-full h-2/3 bottom-0" + (showInteractiveBox ? '' : '-translate-y-48')}
+    <div class={"absolute w-full h-3/4 bottom-0" + (showInteractiveBox ? '' : '-translate-y-48')}
          style={`z-index: ${showInteractiveBox ? "0" : "50"}`}
          on:click={handleClick}
     ></div>

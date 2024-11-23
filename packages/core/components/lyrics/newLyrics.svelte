@@ -12,7 +12,7 @@
     const blurRatio = viewportWidth > 640 ? 1 : 1.4;
     const currentLyricTop = viewportWidth > 640 ? viewportHeight * 0.12 : viewportHeight * 0.05;
     const deceleration = 0.95; // Velocity decay factor for inertia
-    const minVelocity = 0.1; // Minimum velocity to stop inertia
+    const minVelocity = 0.001; // Minimum velocity to stop inertia
     document.body.style.overflow = 'hidden';
 
     // Props
@@ -37,6 +37,7 @@
     let lastTime: number = $state(0); // For tracking time between touch moves
     let velocityY = $state(0); // Vertical scroll velocity
     let inertiaFrame: number = $state(0); // For storing the requestAnimationFrame reference
+    let inertiaFrameCount: number = $state(0);
 
     // References to lyric elements
     let lyricElements: HTMLDivElement[] = $state([]);
@@ -122,7 +123,7 @@
         if (scrollingTimeout) clearTimeout(scrollingTimeout);
         scrollingTimeout = setTimeout(() => {
             scrolling = false;
-        }, 5000);
+        }, 2000);
     }
 
     // Handle the touch start event
