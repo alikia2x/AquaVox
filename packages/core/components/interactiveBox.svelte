@@ -4,6 +4,7 @@
     import userAdjustingProgress from '../state/userAdjustingProgress';
     import progressBarSlideValue from '../state/progressBarSlideValue';
     import truncate from '../utils/truncate';
+    import timestamp from '@core/utils/getCurrentTimestamp';
 
     export let name: string;
     export let singer: string = '';
@@ -19,7 +20,7 @@
     export let hasLyrics: boolean;
 
     export let showInteractiveBox: boolean;
-    export let setShowingInteractiveBox: Function;
+    export let showingInteractiveBoxUntil: Function;
 
     let progressBar: HTMLDivElement;
     let volumeBar: HTMLDivElement;
@@ -29,12 +30,11 @@
     let songInfoTopContent: HTMLSpanElement;
     let userAdjustingVolume = false;
     let lastTouchClientX = 0;
+    let mobileDeviceAdjustingProgress = false;
 
-    setTimeout(() => {
-       if (screen.width < 728) {
-           setShowingInteractiveBox(false);
-       }
-    }, 3000);
+   if (screen.width < 728) {
+       showingInteractiveBoxUntil(timestamp() + 3000);
+   }
 
     const mql = window.matchMedia('(max-width: 1280px)');
 
@@ -81,27 +81,44 @@
 
     window.addEventListener("mousemove", (event) => {
         if ($userAdjustingProgress) {
-            adjustDisplayProgress(event.offsetX / progressBar.getBoundingClientRect().width);
+            const x = event.clientX;
+            const rec = progressBar.getBoundingClientRect();
+            adjustDisplayProgress(truncate((x - rec.left) / rec.width,0,1));
         }
     });
     window.addEventListener("mouseup", (event) => {
         if ($userAdjustingProgress) {
+            const x = event.clientX;
+            const rec = progressBar.getBoundingClientRect();
             userAdjustingProgress.set(false);
-            adjustProgress(event.offsetX / progressBar.getBoundingClientRect().width);
+            adjustProgress(truncate((x - rec.left) / rec.width,0,1));
         }
     });
     window.addEventListener("touchmove", (event) => {
         if ($userAdjustingProgress) {
-            adjustDisplayProgress((event.touches[0].clientX - progressBar.getBoundingClientRect().left) / progressBar.getBoundingClientRect().width);
-            lastTouchClientX = event.touches[0].clientX;
+            const x = event.touches[0].clientX;
+            const rec = progressBar.getBoundingClientRect();
+            adjustDisplayProgress(truncate((x - rec.left) / rec.width,0,1));
+            lastTouchClientX = x;
         }
     });
     window.addEventListener("touchend", (event) => {
         if ($userAdjustingProgress) {
-            adjustProgress((lastTouchClientX - progressBar.getBoundingClientRect().left) / progressBar.getBoundingClientRect().width);
+            const x = lastTouchClientX;
+            const rec = progressBar.getBoundingClientRect();
+            adjustProgress(truncate((x - rec.left) / rec.width,0,1));
             userAdjustingProgress.set(false);
+            mobileDeviceAdjustingProgress = false;
         }
     });
+
+    userAdjustingProgress.subscribe(()=> {
+        showingInteractiveBoxUntil(timestamp() + 5000);
+    });
+
+    function handleClick() {
+        showingInteractiveBoxUntil(timestamp() + 5000);
+    }
 </script>
 
 {#if showInfoTop}
@@ -112,11 +129,11 @@
 {/if}
 
 <div
-    class={'absolute select-none bottom-12 h-60 w-[86vw] left-[7vw] duration-500 z-10 ' +
+    class={'absolute select-none bottom-12 h-60 w-[86vw] left-[7vw] duration-500 z-10 transition-[opacity,transform] ' +
         (hasLyrics
             ? 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[7vw]'
             : 'lg:w-[76vw] lg:left-[12vw] xl:w-[37vw] xl:left-[31.5vw]') + ' ' +
-             (showInteractiveBox ? 'opacity-100' : 'opacity-0')}
+             (showInteractiveBox ? 'opacity-100' : 'opacity-0 translate-y-48')}
     style={`z-index: ${showInteractiveBox ? "0" : "50"}`}
 >
 
@@ -132,12 +149,12 @@
         </div>
     {/if}
 
-    <div class="absolute w-full h-2/3 bottom-0" style={`z-index: ${showInteractiveBox ? "0" : "50"}`} on:click={() => {
-        setShowingInteractiveBox(true);
-        setTimeout(() => {
-            setShowingInteractiveBox(false);
-        }, 5000);
-    }}></div>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class={"absolute w-full h-2/3 bottom-0" + (showInteractiveBox ? '' : '-translate-y-48')}
+         style={`z-index: ${showInteractiveBox ? "0" : "50"}`}
+         on:click={handleClick}
+    ></div>
 
     <div class="progress top-16">
         <div class="time-indicator text-shadow-md time-current">
@@ -148,7 +165,7 @@
             aria-valuemin="0"
             aria-valuenow={progress}
             bind:this={progressBar}
-            class="progress-bar shadow-md"
+            class="progress-bar shadow-md {mobileDeviceAdjustingProgress && '!h-[0.7rem]'}"
             on:keydown
             on:keyup
             on:click={(e) => {
@@ -159,11 +176,12 @@
             }}
             on:touchstart={() => {
                 userAdjustingProgress.set(true);
+                mobileDeviceAdjustingProgress = true;
             }}
             role="slider"
             tabindex="0"
         >
-            <div class="bar" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
+            <div class="bar {mobileDeviceAdjustingProgress && '!h-[0.7rem]'}" style={`width: ${(progress / (duration + 0.001)) * 100}%;`}></div>
         </div>
 
         <div class="time-indicator text-shadow-md time-total">{formatDuration(duration)}</div>
@@ -370,7 +388,7 @@
         transition: 0.3s;
     }
 
-    .progress-bar:hover {
+    .progress-bar:active {
         height: 0.7rem;
     }
 
@@ -384,7 +402,7 @@
         transition: height 0.3s;
     }
 
-    .progress-bar:hover .bar {
+    .progress-bar:active .bar {
         height: 0.7rem;
     }
 
@@ -409,6 +427,12 @@
     @media (min-width: 768px) {
         .control-btn {
             transition: 0.1s
+        }
+        .progress-bar:hover {
+            height: 0.7rem;
+        }
+        .progress-bar:hover .bar {
+            height: 0.7rem;
         }
     }
 </style>

@@ -134,6 +134,11 @@
     };
 
 
+    export const syncSpringWithDelta = (deltaY: number) => {
+        const target = positionY + deltaY;
+        springY!.setPosition(target);
+    }
+
     export const getInfo = () => {
         return {
             x: positionX,

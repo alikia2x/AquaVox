@@ -14,6 +14,7 @@
     import progressBarRaw from '@core/state/progressBarRaw';
     import { parseTTML, parseLRC } from '@alikia/aqualyrics';
     import NewLyrics from '@core/components/lyrics/newLyrics.svelte';
+    import timestamp from '@core/utils/getCurrentTimestamp';
 
     const audioId = $page.params.id;
     let audioPlayer: HTMLAudioElement | null = null;
@@ -31,6 +32,7 @@
     let hasLyrics: boolean;
     const coverPath = writable('');
     let mainInterval: ReturnType<typeof setInterval>;
+    let showInteractiveBoxUntil = Infinity;
     let showInteractiveBox = true;
 
     function setMediaSession() {
@@ -197,8 +199,8 @@
         }
     }
 
-    function setShowingInteractiveBox(showing: boolean) {
-        showInteractiveBox = showing;
+    function showingInteractiveBoxUntil(until: number) {
+        showInteractiveBoxUntil = until;
     }
 
     $: {
@@ -224,6 +226,10 @@
 
     $: hasLyrics = !!originalLyrics;
 
+    setInterval(() => {
+        showInteractiveBox = timestamp() < showInteractiveBoxUntil || screen.width > 728;
+    }, 500);
+
     readDB();
 </script>
 
@@ -231,41 +237,45 @@
     <title>{name} - AquaVox</title>
 </svelte:head>
 
-<Background coverId={audioId} />
-<Cover {coverPath} {hasLyrics} />
-<InteractiveBox
-    {name}
-    {singer}
-    {duration}
-    {volume}
-    progress={currentProgress}
-    clickPlay={playAudio}
-    {paused}
-    {adjustProgress}
-    {adjustVolume}
-    {adjustDisplayProgress}
-    {hasLyrics}
-    {showInteractiveBox}
-    {setShowingInteractiveBox}
-/>
+<div class="select-none">
 
-<NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer} {showInteractiveBox} />
+    <Background coverId={audioId} />
+    <Cover {coverPath} {hasLyrics} />
+    <InteractiveBox
+        {name}
+        {singer}
+        {duration}
+        {volume}
+        progress={currentProgress}
+        clickPlay={playAudio}
+        {paused}
+        {adjustProgress}
+        {adjustVolume}
+        {adjustDisplayProgress}
+        {hasLyrics}
+        {showInteractiveBox}
+        {showingInteractiveBoxUntil}
+    />
 
-<audio
-    bind:this={audioPlayer}
-    controls
-    style="display: none"
-    on:play={() => {
+    <NewLyrics {originalLyrics} progress={currentProgress} player={audioPlayer} {showInteractiveBox}/>
+
+    <audio
+        bind:this={audioPlayer}
+        controls
+        style="display: none"
+        on:play={() => {
         if (audioPlayer === null) return;
         paused = audioPlayer.paused;
     }}
-    on:pause={() => {
+        on:pause={() => {
         if (audioPlayer === null) return;
         paused = audioPlayer.paused;
     }}
-    on:ended={() => {
+        on:ended={() => {
         paused = true;
         if (audioPlayer == null) return;
         audioPlayer.pause();
     }}
-></audio>
+    ></audio>
+
+</div>

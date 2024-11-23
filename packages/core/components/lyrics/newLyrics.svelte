@@ -116,6 +116,7 @@
             scrolling = true;
             currentLyricComponent.stop();
             currentLyricComponent.setY(currentY - deltaY);
+            currentLyricComponent.syncSpringWithDelta(deltaY);
         }
         scrolling = true;
         if (scrollingTimeout) clearTimeout(scrollingTimeout);
@@ -250,23 +251,26 @@
 
 {#if debugMode}
     <span
-        class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg right-0 font-mono">
-        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex}, uap: {$userAdjustingProgress}
+        class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg
+         right-0 font-mono">
+        progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex},
+        uap: {$userAdjustingProgress}
     </span>
 {/if}
 
 {#if originalLyrics && originalLyrics.scripts}
     <div
-        class="absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12
+        class={`absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 duration-500
+        ${showInteractiveBox ? "h-[calc(100vh-21rem)]" : "h-[calc(100vh-7rem)]"}
         lg:px-[7.5rem] xl:left-[46vw] xl:px-[3vw] xl:h-screen font-sans
-        text-left no-scrollbar z-[1] pt-16 overflow-hidden"
+        text-left no-scrollbar z-[1] pt-16 overflow-hidden`}
         style={`mask: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 7%, rgba(0, 0, 0, 1) 95%,
-        rgba(0, 0, 0, 0) 100%);
-        height: ${showInteractiveBox ? "calc(100vh - 21rem)" : "calc(100vh - 7rem)"}`}
+        rgba(0, 0, 0, 0) 100%);`}
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}
-            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress} {currentLyricIndex} {scrolling}/>
+            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress}
+                       {currentLyricIndex} {scrolling}/>
         {/each}
     </div>
 {/if}

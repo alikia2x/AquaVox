@@ -67,8 +67,15 @@
                         class="relative my-4 p-4 duration-150 bg-zinc-200 hover:bg-zinc-300 dark:bg-zinc-700 dark:hover:bg-zinc-600 rounded-lg"
                     >
                         <span class="font-bold">{musicList[id].name}</span> <br />
-                        <span>{toHumanSize(musicList[id].size)}</span> ·
-                        <a class="!no-underline" href={`/import/${id}/lyric`}>导入歌词</a>
+                        <div class="flex pt-0.5 items-center">
+                            <span class="w-[4.5rem]">{toHumanSize(musicList[id].size)}</span>
+                            <div class="!no-underline import inline-block cursor-default z-50 px-2 py-0.5 rounded ml-2
+                                    hover:bg-gray-200 dark:hover:bg-zinc-500"
+                                 onclick={(e) => {location.href = `/import/${id}/lyric`;e.stopPropagation();}}>
+                                导入歌词
+                            </div>
+                        </div>
+
                         {#if musicList[id].coverUrl}
                             <img
                                 class="h-16 w-16 object-cover absolute rounded-lg right-2 top-2"
@@ -95,7 +102,10 @@
 </div>
 
 <style lang="postcss">
-    a {
-        @apply text-red-500 hover:text-red-400 duration-150 underline;
+    .import {
+        @apply text-red-500 duration-150 underline;
+    }
+    .import:hover {
+        text-shadow: 0 0 3px rgba(239, 68, 68, 0.3);
     }
 </style>

@@ -35,7 +35,7 @@
             {#if $fileItems.length > 0}
                 <AddIcon class="z-[1] relative text-3xl" />
             {:else}
-                <ImportIcon class="z-[1] relative text-4xl" />
+                <ImportIcon class="z-[1] relative text-4xl text-blue-500" />
             {/if}
         </div>
     </button>
