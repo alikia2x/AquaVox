@@ -1,6 +1,6 @@
 <script lang="ts">
     import createSpring from '@core/graphics/spring';
-    import type { LyricWord, ScriptItem } from '@core/lyrics/type';
+    import type { LyricWord, ScriptItem } from '@alikia/aqualyrics';
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
     import userAdjustingProgress from '@core/state/userAdjustingProgress';

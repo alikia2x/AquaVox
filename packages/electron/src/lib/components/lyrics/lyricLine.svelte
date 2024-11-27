@@ -1,6 +1,6 @@
 <script lang="ts">
     import createSpring from '@core/graphics/spring';
-    import type { ScriptItem } from '@core/lyrics/type';
+    import type { ScriptItem } from '@alikia/aqualyrics';
     import type { LyricPos } from './type';
     import type { Spring } from '@core/graphics/spring/spring';
 
