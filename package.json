@@ -8,7 +8,9 @@
   "scripts": {
     "electron:dev": "bun --filter 'electron' dev",
     "web:dev": "bun --filter 'web' dev",
-    "dev": "bun --filter '**' dev"
+    "dev": "bun --filter '**' dev",
+    "web:build": "bun --filter 'web' build",
+    "web:deploy": "bun --filter 'web' go"
   },
   "devDependencies": {
     "@iconify/svelte": "^4.0.2",

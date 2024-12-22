@@ -15,6 +15,9 @@ export default defineConfig({
     test: {
         include: ['src/**/*.{test,spec}.{js,ts}']
     },
+    preview: {
+        port: 4173,
+    },
     optimizeDeps: {
         esbuildOptions: {
             define: {

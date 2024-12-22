@@ -4,12 +4,12 @@ services:
   aquavox:
     build: .
     ports:
-      - "4173:4173"
+      - "2611:2611"
     environment:
       - NODE_ENV=production
     volumes:
       - .:/app
-    command: ["bun", "go"]
+    command: ["bun", "web:deploy"]
 
 volumes:
   node_modules:

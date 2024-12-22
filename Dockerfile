@@ -4,20 +4,17 @@ FROM oven/bun:latest
 # Set the working directory inside the container
 WORKDIR /app
 
-# Copy the package.json and bun.lockb files to the working directory
-COPY package.json bun.lockb ./
+# Copy the application code
+COPY . .
 
 # Install dependencies
 RUN bun install
 
-# Copy the rest of the application code
-COPY . .
-
 # Build the app
-RUN bun run build
+RUN bun run web:build
 
 # Expose the port the app runs on
-EXPOSE 4173
+EXPOSE 2611
 
 # Command to run the application
-CMD ["bun", "go"]
+CMD ["bun", "web:deploy"]
