@@ -1,0 +1,6 @@
+*.toml
+*.yml
+*.json
+*.md
+*.html
+*.svg
