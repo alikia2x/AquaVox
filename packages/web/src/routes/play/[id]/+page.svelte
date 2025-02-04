@@ -209,7 +209,7 @@
             if (audioPlayer === null) return;
             if ($userAdjustingProgress === false) currentProgress = audioPlayer.currentTime;
             progressBarRaw.set(audioPlayer.currentTime);
-        }, 50);
+        }, 20);
     }
 
     onMount(() => {

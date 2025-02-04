@@ -4,6 +4,7 @@
     import LyricLine from './lyricLine.svelte';
     import createLyricsSearcher from '@core/lyrics/lyricSearcher';
     import userAdjustingProgress from '@core/state/userAdjustingProgress';
+    import DisplayFps from '../displayFPS.svelte';
 
     // constants
     const viewportHeight = document.documentElement.clientHeight;
@@ -16,11 +17,16 @@
     document.body.style.overflow = 'hidden';
 
     // Props
-    let { originalLyrics, progress, player, showInteractiveBox } : {
-        originalLyrics: LyricData,
-        progress: number,
-        player: HTMLAudioElement | null,
-        showInteractiveBox: boolean
+    let {
+        originalLyrics,
+        progress,
+        player,
+        showInteractiveBox
+    }: {
+        originalLyrics: LyricData;
+        progress: number;
+        player: HTMLAudioElement | null;
+        showInteractiveBox: boolean;
     } = $props();
 
     // States
@@ -76,15 +82,28 @@
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
             const lyric = originalLyrics.scripts[i];
+            const lyricBeforeProgress = lyric.end < progress;
+            const lyricInProgress = lyric.start <= progress && progress <= lyric.end;
+            const lyricWillHigherThanViewport = lyricTopList[i + 3] - relativeOrigin < 0;
+            const lyricWillLowerThanViewport = lyricTopList[i - 3] - relativeOrigin > lyricsContainer?.getBoundingClientRect().height!;
+
             let delay = 0;
-            if (progress > lyric.end) {
+            if (lyricBeforeProgress) {
                 delay = 0;
-            } else if (lyric.start <= progress && progress <= lyric.end) {
-                delay = 0.042;
+            } else if (lyricInProgress) {
+                delay = 0.03;
             } else {
                 delay = Math.min(Math.min(currentLyricDuration, 0.6), 0.067 * (i - currentLyricIndex + 1.2));
             }
-            currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
+
+            // if it's not in the viewport, we need to use animations
+            if (lyricWillHigherThanViewport || lyricWillLowerThanViewport) {
+                currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
+            }
+            // if it's still in the viewport, we need to use spring animation
+            else {
+                currentLyricComponent.update({ x: 0, y: lyricTopList[i] - relativeOrigin }, delay);
+            }
         }
     }
 
@@ -111,11 +130,16 @@
     });
 
     function handleScroll(deltaY: number) {
+        if (lyricComponents[0].getInfo().y > 0 && deltaY < 0) {
+            deltaY = 0;
+        }
+        if (lyricComponents[lyricComponents.length - 1].getInfo().y < 100 && deltaY > 0) {
+            deltaY = 0;
+        }
         for (let i = 0; i < lyricElements.length; i++) {
             const currentLyricComponent = lyricComponents[i];
             const currentY = currentLyricComponent.getInfo().y;
             scrolling = true;
-            currentLyricComponent.stop();
             currentLyricComponent.setY(currentY - deltaY);
             currentLyricComponent.syncSpringWithDelta(deltaY);
         }
@@ -200,21 +224,19 @@
         lastEventProgress = progress;
         if (!lyricChanged || scrolling) return;
         if (!lyricIndexDeltaTooBig && deltaInRange) {
-            console.log("Event: regular move");
+            console.log('Event: regular move');
             console.log(new Date().getTime(), lastSeekForward);
             computeLayout();
-        }
-        else if ($userAdjustingProgress) {
+        } else if ($userAdjustingProgress) {
             if (deltaTooBig && lyricChanged) {
-                console.log("Event: seek forward");
+                console.log('Event: seek forward');
                 seekForward();
             } else if (deltaIsNegative && lyricChanged) {
-                console.log("Event: seek backward");
+                console.log('Event: seek backward');
                 seekForward();
             }
-        }
-        else {
-            console.log("Event: regular move");
+        } else {
+            console.log('Event: regular move');
             computeLayout();
         }
     });
@@ -253,16 +275,23 @@
 {#if debugMode}
     <span
         class="text-white text-lg absolute z-50 px-2 py-0.5 m-2 rounded-3xl bg-white bg-opacity-20 backdrop-blur-lg
-         right-0 font-mono">
+         right-0 font-mono"
+    >
         progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex},
         uap: {$userAdjustingProgress}
     </span>
+    <div
+        class="text-black/80 text-sm absolute z-50 px-3 py-2 m-2 rounded-lg bg-white/30 backdrop-blur-xl
+         left-0 font-mono"
+    >
+        <DisplayFps />
+    </div>
 {/if}
 
 {#if originalLyrics && originalLyrics.scripts}
     <div
         class={`absolute top-[6.5rem] md:top-36 xl:top-0 w-screen xl:w-[52vw] px-6 md:px-12 duration-500
-        ${showInteractiveBox ? "h-[calc(100vh-21rem)]" : "h-[calc(100vh-7rem)]"}
+        ${showInteractiveBox ? 'h-[calc(100vh-21rem)]' : 'h-[calc(100vh-7rem)]'}
         lg:px-[7.5rem] xl:left-[46vw] xl:px-[3vw] xl:h-screen font-sans
         text-left no-scrollbar z-[1] pt-16 overflow-hidden`}
         style={`mask: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 1) 7%, rgba(0, 0, 0, 1) 95%,
@@ -270,8 +299,16 @@
         bind:this={lyricsContainer}
     >
         {#each lyricLines as lyric, i}
-            <LyricLine line={lyric} index={i} bind:this={lyricComponents[i]} {debugMode} {lyricClick} {progress}
-                       {currentLyricIndex} {scrolling}/>
+            <LyricLine
+                line={lyric}
+                index={i}
+                bind:this={lyricComponents[i]}
+                {debugMode}
+                {lyricClick}
+                {progress}
+                {currentLyricIndex}
+                {scrolling}
+            />
         {/each}
     </div>
 {/if}

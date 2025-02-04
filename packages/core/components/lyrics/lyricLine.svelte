@@ -38,6 +38,7 @@
     let isCurrentLyric = false;
 
     function updateY(timestamp: number) {
+        if (stopped) return;
         if (lastUpdateY === undefined) {
             lastUpdateY = new Date().getTime();
         }
@@ -52,6 +53,7 @@
     }
 
     function updateX(timestamp: number) {
+        if (stopped) return;
         if (lastUpdateX === undefined) {
             lastUpdateX = timestamp;
         }
@@ -70,6 +72,7 @@
      * @param {number} pos - X offset, in pixels
      */
     export const setX = (pos: number) => {
+        stopped = true;
         positionX = pos;
     };
 
@@ -78,6 +81,7 @@
      * @param {number} pos - Y offset, in pixels
      */
     export const setY = (pos: number) => {
+        stopped = true;
         positionY = pos;
     };
 
