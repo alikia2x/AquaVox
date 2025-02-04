@@ -70,6 +70,10 @@
             lastRealY = positionY;
             lastRealTime = currentTime;
             lastUpdateY = currentTime;
+            // 无论是否真实帧都继续请求动画帧（保持动画流畅）
+            if (!springY?.arrived() && !stopped && !we_are_scrolling) {
+                requestAnimationFrame(updateY);
+            }
         } else if (
             prevRealY !== undefined &&
             prevRealTime !== undefined &&
@@ -82,11 +86,10 @@
             const velocity = (lastRealY - prevRealY) / ((lastRealTime - prevRealTime) / 1000);
 
             positionY = lastRealY + velocity * deltaT;
-        }
-
-        // 无论是否真实帧都继续请求动画帧（保持动画流畅）
-        if (!springY?.arrived() && !stopped && !we_are_scrolling) {
-            requestAnimationFrame(updateY);
+            // 无论是否真实帧都继续请求动画帧（保持动画流畅）
+            if (!stopped && !we_are_scrolling) {
+                requestAnimationFrame(updateY);
+            }
         }
     }
 
