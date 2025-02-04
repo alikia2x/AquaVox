@@ -41,17 +41,16 @@
     let prevRealTime: number | undefined = undefined;
     let lastRealY: number | undefined = undefined;
     let lastRealTime: number | undefined = undefined;
-    const INTERVAL = 1; // 可调节的插值间隔（0-1）
+    const INTERPOLATED_RATE = 0; // 可调节的插值间隔（0-1）
 
     function updateY(timestamp: number) {
         if (stopped) return;
 
-        // 记录真实帧信息
         const currentTime = new Date().getTime();
-        const isRealFrame = INTERVAL === 0 || Math.random() < INTERVAL;
+        const isRealFrame = Math.random() > INTERPOLATED_RATE;
 
         if (isRealFrame) {
-            // 真实物理帧
+            // 真实物理帧处理
             if (lastUpdateY === undefined) {
                 lastUpdateY = currentTime;
             }
@@ -62,31 +61,35 @@
             prevRealTime = lastRealTime;
 
             // 更新物理状态
-            time = (currentTime - lastUpdateY) / 1000;
-            springY.update(time);
+            const deltaTime = (currentTime - lastUpdateY) / 1000;
+            springY.update(deltaTime);
             positionY = springY.getCurrentPosition();
 
             // 记录当前真实帧数据
             lastRealY = positionY;
             lastRealTime = currentTime;
             lastUpdateY = currentTime;
-            // 无论是否真实帧都继续请求动画帧（保持动画流畅）
+
+            // 继续请求动画帧
             if (!springY?.arrived() && !stopped && !we_are_scrolling) {
                 requestAnimationFrame(updateY);
             }
-        } else if (
-            prevRealY !== undefined &&
-            prevRealTime !== undefined &&
-            lastRealY !== undefined &&
-            lastRealTime !== undefined
-        ) {
-            // 插值帧
-            const timeSinceLastReal = currentTime - lastRealTime;
-            const deltaT = timeSinceLastReal / 1000;
-            const velocity = (lastRealY - prevRealY) / ((lastRealTime - prevRealTime) / 1000);
+        } else {
+            // 插值帧处理
+            if (lastRealY !== undefined && lastRealTime !== undefined) {
+                const timeSinceLastReal = currentTime - lastRealTime;
+                const deltaT = timeSinceLastReal / 1000;
 
-            positionY = lastRealY + velocity * deltaT;
-            // 无论是否真实帧都继续请求动画帧（保持动画流畅）
+                // 计算速度（如果有前一次真实帧数据）
+                let velocity = 0;
+                if (prevRealY !== undefined && prevRealTime !== undefined && lastRealTime !== prevRealTime) {
+                    velocity = (lastRealY - prevRealY) / ((lastRealTime - prevRealTime) / 1000);
+                }
+
+                positionY = lastRealY + velocity * deltaT;
+            }
+
+            // 无论是否成功插值都保持动画流畅
             if (!stopped && !we_are_scrolling) {
                 requestAnimationFrame(updateY);
             }
@@ -206,50 +209,19 @@
 
     export const getRef = () => ref;
 
-    // Calculate if the current character should be highlighted based on progress
-    const isCharacterHighlighted = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
-        const charProgress = getCharacterProgress(word, charIndex);
-        return line.start <= progress && progress <= line.end && progress > charProgress;
-    };
-
-    // Get the progress timing for a specific character in a word
-    const getCharacterProgress = (word: LyricWord, charIndex: number) => {
-        const { startTime, endTime } = word;
+    let processedChars = line.words?.flatMap((word) => {
+        const { startTime, endTime, word: text } = word;
         const wordDuration = endTime - startTime;
-        return wordDuration * (charIndex / word.word.length) + startTime;
-    };
+        return text.split('').map((chr, i) => {
+            const charProgress = startTime + wordDuration * (i / text.length);
+            const charDuration = wordDuration * ((i + 1) / text.length);
+            const transitionDur = charDuration < 0.6 ? null : charDuration / 1.6;
+            return { chr, charProgress, transitionDur };
+        });
+    });
 
-    // Calculate the transition duration for a character
-    const getTransitionDuration = (word: LyricWord, charIndex: number) => {
-        const { startTime, endTime } = word;
-        const wordDuration = endTime - startTime;
-        const charDuration = wordDuration * ((charIndex + 1) / word.word.length);
-
-        // If duration is less than 0.6s, we'll use CSS class with fixed duration
-        if (charDuration < 0.6) {
-            return null;
-        }
-
-        // Otherwise, calculate custom duration
-        return charDuration / 1.6;
-    };
-
-    // Generate the CSS classes for a character
-    const getCharacterClasses = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
-        const baseClasses = 'inline-block';
-        const opacityClass = isCharacterHighlighted(line, word, charIndex, progress)
-            ? 'opacity-100 text-glow'
-            : 'opacity-35';
-
-        return `${baseClasses} ${opacityClass}`.trim();
-    };
-
-    // Generate the style string for a character
-    const getCharacterStyle = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
-        const duration = getTransitionDuration(word, charIndex);
-        const progressAtCurrentLine = progress <= line.end;
-        return duration && progressAtCurrentLine ? `transition-duration: ${duration}s;` : 'transition-duration: 200ms;';
-    };
+    // 新增：缓存当前行状态
+    $: isActiveLine = line.start <= progress && progress <= line.end;
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -282,17 +254,18 @@
     {/if}
     {#if line.words !== undefined && line.words.length > 0}
         <span class={`text-white text-[2rem] leading-9 lg:text-5xl lg:leading-[4rem] font-semibold mr-4 `}>
-            {#each line.words as word}
-                {#if word.word}
-                    {#each word.word.split('') as chr, i}
-                        <span
-                            class={getCharacterClasses(line, word, i, progress)}
-                            style={getCharacterStyle(line, word, i, progress)}
-                        >
-                            {chr}
-                        </span>
-                    {/each}
-                {/if}
+            {#each processedChars as char (char.charProgress)}
+                {@const isHighlighted = line.start <= progress && progress <= line.end && progress > char.charProgress}
+                {@const useCustomTransition = char.transitionDur !== null && isActiveLine}
+
+                <span
+                    class="inline-block {isHighlighted ? 'opacity-100 text-glow' : 'opacity-35'}"
+                    style={useCustomTransition
+                        ? `transition-duration: ${char.transitionDur}s;`
+                        : 'transition-duration: 200ms;'}
+                >
+                    {char.chr}
+                </span>
             {/each}
         </span>
     {:else}
@@ -319,5 +292,18 @@
             0 0 6px #ffffff2c,
             0 15px 30px rgba(0, 0, 0, 0.11),
             0 5px 15px rgba(0, 0, 0, 0.08);
+    }
+    /* 预定义过渡类 */
+    .char-transition {
+        transition-property: opacity;
+        transition-timing-function: ease-out;
+    }
+
+    .fast-transition {
+        transition-duration: 200ms;
+    }
+
+    .custom-transition {
+        transition-duration: var(--custom-duration);
     }
 </style>
