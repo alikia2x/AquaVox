@@ -280,12 +280,12 @@
         progress: {progress.toFixed(2)}, nextUpdate: {nextUpdate}, scrolling: {scrolling}, current: {currentLyricIndex},
         uap: {$userAdjustingProgress}
     </span>
-    <div
+    <!-- <div
         class="text-black/80 text-sm absolute z-50 px-3 py-2 m-2 rounded-lg bg-white/30 backdrop-blur-xl
          left-0 font-mono"
     >
         <DisplayFps />
-    </div>
+    </div> -->
 {/if}
 
 {#if originalLyrics && originalLyrics.scripts}

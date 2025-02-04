@@ -37,19 +37,57 @@
     let springX: Spring | undefined = undefined;
     let isCurrentLyric = false;
 
+    let prevRealY: number | undefined = undefined;
+    let prevRealTime: number | undefined = undefined;
+    let lastRealY: number | undefined = undefined;
+    let lastRealTime: number | undefined = undefined;
+    const INTERVAL = 1; // 可调节的插值间隔（0-1）
+
     function updateY(timestamp: number) {
         if (stopped) return;
-        if (lastUpdateY === undefined) {
-            lastUpdateY = new Date().getTime();
+
+        // 记录真实帧信息
+        const currentTime = new Date().getTime();
+        const isRealFrame = INTERVAL === 0 || Math.random() < INTERVAL;
+
+        if (isRealFrame) {
+            // 真实物理帧
+            if (lastUpdateY === undefined) {
+                lastUpdateY = currentTime;
+            }
+            if (springY === undefined) return;
+
+            // 保存前一次的真实帧数据
+            prevRealY = lastRealY;
+            prevRealTime = lastRealTime;
+
+            // 更新物理状态
+            time = (currentTime - lastUpdateY) / 1000;
+            springY.update(time);
+            positionY = springY.getCurrentPosition();
+
+            // 记录当前真实帧数据
+            lastRealY = positionY;
+            lastRealTime = currentTime;
+            lastUpdateY = currentTime;
+        } else if (
+            prevRealY !== undefined &&
+            prevRealTime !== undefined &&
+            lastRealY !== undefined &&
+            lastRealTime !== undefined
+        ) {
+            // 插值帧
+            const timeSinceLastReal = currentTime - lastRealTime;
+            const deltaT = timeSinceLastReal / 1000;
+            const velocity = (lastRealY - prevRealY) / ((lastRealTime - prevRealTime) / 1000);
+
+            positionY = lastRealY + velocity * deltaT;
         }
-        if (springY === undefined) return;
-        time = (new Date().getTime() - lastUpdateY) / 1000;
-        springY.update(time);
-        positionY = springY.getCurrentPosition();
-        if (!springY.arrived() && !stopped && !we_are_scrolling) {
+
+        // 无论是否真实帧都继续请求动画帧（保持动画流畅）
+        if (!springY?.arrived() && !stopped && !we_are_scrolling) {
             requestAnimationFrame(updateY);
         }
-        lastUpdateY = new Date().getTime();
     }
 
     function updateX(timestamp: number) {
@@ -98,7 +136,7 @@
             }
             if (scrolling) blurRadius = 0;
             if ($userAdjustingProgress) blurRadius = 0;
-            blur = blurRadius
+            blur = blurRadius;
         }
     }
 
@@ -137,11 +175,10 @@
         we_are_scrolling = false;
     };
 
-
     export const syncSpringWithDelta = (deltaY: number) => {
         const target = positionY + deltaY;
         springY!.setPosition(target);
-    }
+    };
 
     export const getInfo = () => {
         return {
@@ -169,9 +206,7 @@
     // Calculate if the current character should be highlighted based on progress
     const isCharacterHighlighted = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
         const charProgress = getCharacterProgress(word, charIndex);
-        return line.start <= progress &&
-            progress <= line.end &&
-            progress > charProgress;
+        return line.start <= progress && progress <= line.end && progress > charProgress;
     };
 
     // Get the progress timing for a specific character in a word
@@ -210,7 +245,7 @@
     const getCharacterStyle = (line: ScriptItem, word: LyricWord, charIndex: number, progress: number) => {
         const duration = getTransitionDuration(word, charIndex);
         const progressAtCurrentLine = progress <= line.end;
-        return (duration && progressAtCurrentLine) ? `transition-duration: ${duration}s;` : 'transition-duration: 200ms;';
+        return duration && progressAtCurrentLine ? `transition-duration: ${duration}s;` : 'transition-duration: 200ms;';
     };
 </script>
 
@@ -276,9 +311,10 @@
 
 <style>
     .text-glow {
-        text-shadow: 0 0 3px #ffffff2c,
-        0 0 6px #ffffff2c,
-        0 15px 30px rgba(0, 0, 0, 0.11),
-        0 5px 15px rgba(0, 0, 0, 0.08);
+        text-shadow:
+            0 0 3px #ffffff2c,
+            0 0 6px #ffffff2c,
+            0 15px 30px rgba(0, 0, 0, 0.11),
+            0 5px 15px rgba(0, 0, 0, 0.08);
     }
 </style>
